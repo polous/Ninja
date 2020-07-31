@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Rocket : MonoBehaviour
 {
@@ -51,26 +52,26 @@ public class Rocket : MonoBehaviour
                     main.BodyHitReaction(e.mr, e.MPB, e.bodyColor);
 
                     e.curHealthPoint -= damage;
-                    e.healthSlider.fillAmount = e.curHealthPoint / e.maxHealthPoint;
+                    e.healthPanelScript.HitFunction(e.curHealthPoint / e.maxHealthPoint, damage);
+
                     if (e.curHealthPoint <= 0)
                     {
-                        main.enemies.Remove(e);
-                        Destroy(e.healthPanel.gameObject);
-                        Destroy(e.gameObject);
-
-                        if(main.enemies.Count == 0)
-                        {
-                            main.MessagePanel.text = "ТЫ ПОБЕДИЛ!\n ёпта";
-                        }
+                        main.EnemyDie(e);
                     }
                 }
+
                 else if (other.tag == "Player")
                 {
                     Player p = other.GetComponent<Player>();
                     main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);
 
                     p.curHealthPoint -= damage;
-                    p.healthSlider.fillAmount = p.curHealthPoint / p.maxHealthPoint;
+                    p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, damage);
+
+                    if (p.curHealthPoint <= 0)
+                    {
+                        main.PlayerDie(p);
+                    }
                 }
 
                 flying = false;
@@ -78,8 +79,4 @@ public class Rocket : MonoBehaviour
             }
         }
     }
-
-    
-
-
 }

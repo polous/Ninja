@@ -173,10 +173,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 3
   shootRange: 5
-  rocketDamage: 10
-  rocketSpeed: 10
-  reloadingTime: 0.3
-  rotateSpeed: 8
+  rocketDamage: 20
+  rocketSpeed: 20
+  reloadingTime: 0.6
+  rotateSpeed: 10
   maxEnergy: 150
   matrixEnergyDrop: 0
   energyGrowPerSec: 5
@@ -187,7 +187,7 @@ MonoBehaviour:
   maxHealthPoint: 100
   curHealthPoint: 0
   healthPanel: {fileID: 0}
-  healthSlider: {fileID: 0}
+  healthPanelScript: {fileID: 0}
   joy: {fileID: 0}
   SpawnPoint: {fileID: 0}
   main: {fileID: 0}

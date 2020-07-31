@@ -26,7 +26,7 @@ public class Enemy : MonoBehaviour
     public float maxHealthPoint; // максимальный запас здоровья
     public float curHealthPoint; // текущий запас здоровья
     public Transform healthPanel;
-    public Image healthSlider;
+    public HealthPanel healthPanelScript;
 
     public Main main;
 
@@ -89,83 +89,86 @@ public class Enemy : MonoBehaviour
     {
         healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
 
-        if ((main.player.transform.position - transform.position).magnitude <= shootRange && !Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.2f, main.player.transform.position - transform.position, out RChit, (main.player.transform.position - transform.position).magnitude, 1 << 9))
+        if (main.player != null)
         {
-            if (Vector3.Angle(transform.forward, main.player.transform.position - transform.position) <= 1f)
+            if ((main.player.transform.position - transform.position).magnitude <= shootRange && !Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.2f, main.player.transform.position - transform.position, out RChit, (main.player.transform.position - transform.position).magnitude, 1 << 9))
             {
-                if (!reloading)
+                if (Vector3.Angle(transform.forward, main.player.transform.position - transform.position) <= 1f)
                 {
-                    Rocket rocket = main.rocketsPool.GetChild(0).GetComponent<Rocket>();
-                    rocket.transform.parent = null;
-                    rocket.transform.position = transform.position + 0.5f * Vector3.up;
-                    rocket.startPoint = rocket.transform.position;
-                    rocket.maxRange = shootRange;
-                    rocket.MyShooterTag = tag;
-                    rocket.flying = true;
-                    rocket.speed = rocketSpeed;
-                    rocket.damage = rocketDamage;
-                    rocket.direction = main.player.transform.position - transform.position;
+                    if (!reloading)
+                    {
+                        Rocket rocket = main.rocketsPool.GetChild(0).GetComponent<Rocket>();
+                        rocket.transform.parent = null;
+                        rocket.transform.position = transform.position + 0.5f * Vector3.up;
+                        rocket.startPoint = rocket.transform.position;
+                        rocket.maxRange = shootRange;
+                        rocket.MyShooterTag = tag;
+                        rocket.flying = true;
+                        rocket.speed = rocketSpeed;
+                        rocket.damage = rocketDamage;
+                        rocket.direction = main.player.transform.position - transform.position;
 
-                    StartCoroutine(Reloading(reloadingTime));
+                        StartCoroutine(Reloading(reloadingTime));
+                    }
+                }
+                else
+                {
+                    targetDir = main.player.transform.position - transform.position; targetDir.y = 0;
+                    transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
                 }
             }
             else
             {
-                targetDir = main.player.transform.position - transform.position; targetDir.y = 0;
-                transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
-            }
-        }
-        else
-        {
-            if (MT == moveType.Random)
-            {
-                if (!moving)
+                if (MT == moveType.Random)
                 {
-                    GetRandomPoint(transform.position, shootRange * 2f);
-                    i = 1;
-
-                    StartCoroutine(Moving(movingTime));
-                }
-                else
-                {
-                    if (i != path.corners.Length)
+                    if (!moving)
                     {
-                        transform.position = Vector3.MoveTowards(transform.position, path.corners[i], Time.deltaTime * moveSpeed * main.curSlowerCoeff);
-                        targetDir = path.corners[i] - transform.position; targetDir.y = 0;
-                        transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
+                        GetRandomPoint(transform.position, shootRange * 2f);
+                        i = 1;
 
-                        if ((path.corners[i] - transform.position).magnitude <= 0.01f) i++;
+                        StartCoroutine(Moving(movingTime));
                     }
                     else
                     {
-                        moving = false;
+                        if (i != path.corners.Length)
+                        {
+                            transform.position = Vector3.MoveTowards(transform.position, path.corners[i], Time.deltaTime * moveSpeed * main.curSlowerCoeff);
+                            targetDir = path.corners[i] - transform.position; targetDir.y = 0;
+                            transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
+
+                            if ((path.corners[i] - transform.position).magnitude <= 0.01f) i++;
+                        }
+                        else
+                        {
+                            moving = false;
+                        }
                     }
                 }
-            }
-            
-            else if (MT == moveType.Follow)
-            {
-                if (!moving)
-                {
-                    NavMesh.CalculatePath(transform.position, main.player.transform.position, NavMesh.AllAreas, path);
-                    i = 1;
 
-                    StartCoroutine(Moving(movingTime));
-                }
-                else
+                else if (MT == moveType.Follow)
                 {
-                    if (i != path.corners.Length)
+                    if (!moving)
                     {
-                        transform.position = Vector3.MoveTowards(transform.position, path.corners[i], Time.deltaTime * moveSpeed * main.curSlowerCoeff);
-                        targetDir = path.corners[i] - transform.position; targetDir.y = 0;
-                        transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
-                        //if (transform.position != path.corners[i]) transform.rotation = Quaternion.LookRotation(targetDir);
+                        NavMesh.CalculatePath(transform.position, main.player.transform.position, NavMesh.AllAreas, path);
+                        i = 1;
 
-                        if ((path.corners[i] - transform.position).magnitude <= 0.01f) i++;
+                        StartCoroutine(Moving(movingTime));
                     }
                     else
                     {
-                        moving = false;
+                        if (i != path.corners.Length)
+                        {
+                            transform.position = Vector3.MoveTowards(transform.position, path.corners[i], Time.deltaTime * moveSpeed * main.curSlowerCoeff);
+                            targetDir = path.corners[i] - transform.position; targetDir.y = 0;
+                            transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
+                            //if (transform.position != path.corners[i]) transform.rotation = Quaternion.LookRotation(targetDir);
+
+                            if ((path.corners[i] - transform.position).magnitude <= 0.01f) i++;
+                        }
+                        else
+                        {
+                            moving = false;
+                        }
                     }
                 }
             }

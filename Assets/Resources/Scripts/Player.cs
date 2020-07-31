@@ -24,7 +24,7 @@ public class Player : MonoBehaviour
     public float maxHealthPoint; // максимальный запас здоровья
     public float curHealthPoint; // текущий запас здоровья
     public Transform healthPanel;
-    public Image healthSlider;
+    public HealthPanel healthPanelScript;
 
     public Joystick joy;
     public Transform SpawnPoint;

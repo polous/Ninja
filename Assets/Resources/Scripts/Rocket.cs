@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class Rocket : MonoBehaviour
 {
-    public int damage; // базовый урон
+    public int damage; // урон
     public float maxRange; // предельная дистанция полета
-    public float speed; // скорость
+    public float speed; // скорость полета 
     public Vector3 startPoint; // начальная точка полета    
     public string MyShooterTag; // тэг стреляющего НПС
     public bool flying; // летит ли?
@@ -49,11 +49,28 @@ public class Rocket : MonoBehaviour
                 {
                     Enemy e = other.GetComponent<Enemy>();
                     main.BodyHitReaction(e.mr, e.MPB, e.bodyColor);
+
+                    e.curHealthPoint -= damage;
+                    e.healthSlider.fillAmount = e.curHealthPoint / e.maxHealthPoint;
+                    if (e.curHealthPoint <= 0)
+                    {
+                        main.enemies.Remove(e);
+                        Destroy(e.healthPanel.gameObject);
+                        Destroy(e.gameObject);
+
+                        if(main.enemies.Count == 0)
+                        {
+                            main.MessagePanel.text = "ТЫ ПОБЕДИЛ!\n ёпта";
+                        }
+                    }
                 }
                 else if (other.tag == "Player")
                 {
                     Player p = other.GetComponent<Player>();
                     main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);
+
+                    p.curHealthPoint -= damage;
+                    p.healthSlider.fillAmount = p.curHealthPoint / p.maxHealthPoint;
                 }
 
                 flying = false;

@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
-    public float moveSpeed; // базовая скорость игрока
+    public float moveSpeed; // базовая скорость перемещения игрока
     float s; // текущая скорость игрока
     public float shootRange; // дистанция стрельбы
-    public float reloadingTime; // время "перезарядки" оружия
+    public int rocketDamage; // текущий урон от оружия
+    public float rocketSpeed; // скорость полета пули
+    public float reloadingTime; // время перезарядки оружия (задержка между соседними атаками)
     bool reloading;
     public float rotateSpeed; // скорость поворота
     public float maxEnergy; // максимальный запас энергии
@@ -17,15 +21,17 @@ public class Player : MonoBehaviour
     public float energyRecoveryPerSec; // восстановление энергии в секунду вне матрицы
     public float curEnergy; // текущий запас энергии
     public float sPrev, sCur;
+    public float maxHealthPoint; // максимальный запас здоровья
+    public float curHealthPoint; // текущий запас здоровья
+    public Transform healthPanel;
+    public Image healthSlider;
 
-    
     public Joystick joy;
     public Transform SpawnPoint;
     Transform CamTarget;
     public Main main;
     RaycastHit RChit;
 
-    public List<Enemy> enemies = new List<Enemy>();
     Enemy myAim;
 
     public Color bodyColor;
@@ -45,6 +51,7 @@ public class Player : MonoBehaviour
         transform.position = SpawnPoint.position;
         s = 0;
         curEnergy = maxEnergy;
+        curHealthPoint = maxHealthPoint;
         UIRefresh(curEnergy);
     }
 
@@ -57,6 +64,8 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
+
         myAim = null;
         sPrev = s;
         // определяем и задаем направление движения
@@ -107,7 +116,7 @@ public class Player : MonoBehaviour
 
         // определяем близжайщего видимого (не закрытого препятствиями) врага
         float nearestShootDist = shootRange;        
-        foreach (Enemy e in enemies)
+        foreach (Enemy e in main.enemies)
         {
             if ((e.transform.position - transform.position).magnitude <= nearestShootDist && !Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.2f, e.transform.position - transform.position, out RChit, (e.transform.position - transform.position).magnitude, 1 << 9))
             {
@@ -139,6 +148,8 @@ public class Player : MonoBehaviour
                         rocket.maxRange = shootRange;
                         rocket.MyShooterTag = tag;
                         rocket.flying = true;
+                        rocket.speed = rocketSpeed;
+                        rocket.damage = rocketDamage;
                         rocket.direction = myAim.transform.position - transform.position;
                         // "пережаряжаемся" (задержка между выстрелами)
                         StartCoroutine(Reloading(reloadingTime));

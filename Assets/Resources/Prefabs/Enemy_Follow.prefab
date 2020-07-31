@@ -216,9 +216,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 1.5
   shootRange: 1
+  rocketDamage: 20
+  rocketSpeed: 10
   reloadingTime: 2
   movingTime: 0.05
   rotateSpeed: 4
+  maxHealthPoint: 120
+  curHealthPoint: 0
+  healthPanel: {fileID: 0}
+  healthSlider: {fileID: 0}
   main: {fileID: 0}
   MT: 1
   bodyColor: {r: 1, g: 0.33490568, b: 0.7795269, a: 1}
+  mr: {fileID: 0}

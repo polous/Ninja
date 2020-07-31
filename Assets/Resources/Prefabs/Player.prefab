@@ -57,7 +57,7 @@ Transform:
   m_GameObject: {fileID: 2179335532019320129}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0.020000001, z: 0}
-  m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
+  m_LocalScale: {x: 0.79, y: 0.79, z: 0.79}
   m_Children: []
   m_Father: {fileID: 5337075039462226624}
   m_RootOrder: 0
@@ -99,8 +99,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 5b56d9fa0e8bd6e409ed188db38a692c, type: 3}
-  m_Color: {r: 0.019819975, g: 1, b: 0, a: 0.27450982}
+  m_Sprite: {fileID: 21300000, guid: 4e697ee5a33b70349bb8e4552a382da0, type: 3}
+  m_Color: {r: 0.019819975, g: 1, b: 0, a: 0.5882353}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -173,7 +173,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 3
   shootRange: 5
-  reloadingTime: 0.5
+  rocketDamage: 10
+  rocketSpeed: 10
+  reloadingTime: 0.3
   rotateSpeed: 8
   maxEnergy: 150
   matrixEnergyDrop: 0
@@ -182,10 +184,13 @@ MonoBehaviour:
   curEnergy: 0
   sPrev: 0
   sCur: 0
+  maxHealthPoint: 100
+  curHealthPoint: 0
+  healthPanel: {fileID: 0}
+  healthSlider: {fileID: 0}
   joy: {fileID: 0}
   SpawnPoint: {fileID: 0}
   main: {fileID: 0}
-  enemies: []
   bodyColor: {r: 0, g: 0.8301887, b: 0.17738682, a: 1}
   mr: {fileID: 0}
 --- !u!195 &1850223976

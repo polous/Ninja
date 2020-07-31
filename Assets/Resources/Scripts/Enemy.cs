@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public enum moveType
 {
@@ -13,13 +14,19 @@ public enum moveType
 
 public class Enemy : MonoBehaviour
 {
-    public float moveSpeed;
-    public float shootRange;
-    public float reloadingTime;
-    public float movingTime;
+    public float moveSpeed; // скорость перемещения
+    public float shootRange; // дистанция атаки
+    public int rocketDamage; // текущий урон от оружия
+    public float rocketSpeed; // скорость полета пули
+    public float reloadingTime; // время перезарядки оружия (задержка между соседними атаками)
+    public float movingTime; // время в пути (после него идет переопределение пути)
     bool reloading;
     bool moving;
-    public float rotateSpeed;
+    public float rotateSpeed; // скорость поворота
+    public float maxHealthPoint; // максимальный запас здоровья
+    public float curHealthPoint; // текущий запас здоровья
+    public Transform healthPanel;
+    public Image healthSlider;
 
     public Main main;
 
@@ -46,8 +53,9 @@ public class Enemy : MonoBehaviour
         MPB.SetColor("_Color", bodyColor);
         mr.SetPropertyBlock(MPB);
 
+        curHealthPoint = maxHealthPoint;
+
         path = new NavMeshPath();
-        main.player.enemies.Add(this);
     }
 
     // Получение случайной точки на Navmesh
@@ -79,6 +87,8 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
+        healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
+
         if ((main.player.transform.position - transform.position).magnitude <= shootRange && !Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.2f, main.player.transform.position - transform.position, out RChit, (main.player.transform.position - transform.position).magnitude, 1 << 9))
         {
             if (Vector3.Angle(transform.forward, main.player.transform.position - transform.position) <= 1f)
@@ -92,6 +102,8 @@ public class Enemy : MonoBehaviour
                     rocket.maxRange = shootRange;
                     rocket.MyShooterTag = tag;
                     rocket.flying = true;
+                    rocket.speed = rocketSpeed;
+                    rocket.damage = rocketDamage;
                     rocket.direction = main.player.transform.position - transform.position;
 
                     StartCoroutine(Reloading(reloadingTime));

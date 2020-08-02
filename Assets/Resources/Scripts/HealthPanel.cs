@@ -9,7 +9,7 @@ public class HealthPanel : MonoBehaviour
     public Image healthSlider;
     public List<Text> damageText;
 
-    public void HitFunction(float fillAmount, int damage)
+    public void HitFunction(float fillAmount, float damage)
     {
         if (fillAmount < 0) fillAmount = 0;
         healthSlider.fillAmount = fillAmount;

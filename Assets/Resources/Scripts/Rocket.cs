@@ -62,7 +62,7 @@ public class Rocket : MonoBehaviour
 
                 else if (other.tag == "Player")
                 {
-                    Player p = other.GetComponent<Player>();
+                    Player p = main.player;
                     main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);
 
                     p.curHealthPoint -= damage;

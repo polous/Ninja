@@ -16,17 +16,24 @@ public class Enemy : MonoBehaviour
 {
     public float moveSpeed; // скорость перемещения
     public float shootRange; // дистанция атаки
+    public float rotateSpeed; // скорость поворота
+    public float movingTime; // время в пути (после него идет переопределение пути)
+
     public int rocketDamage; // текущий урон от оружия
     public float rocketSpeed; // скорость полета пули
-    public float reloadingTime; // время перезарядки оружия (задержка между соседними атаками)
-    public float movingTime; // время в пути (после него идет переопределение пути)
-    bool reloading;
-    bool moving;
-    public float rotateSpeed; // скорость поворота
+    public float reloadingTime; // время перезарядки оружия (задержка между соседними атаками в секундах)
+
     public float maxHealthPoint; // максимальный запас здоровья
     public float curHealthPoint; // текущий запас здоровья
+
+    public float voidZoneDamage; // урон от войд зоны
+    public float voidZoneRadius; // радиус войд зоны
+    public int voidZoneDuration; // продолжительность от начала каста до непосредственно взрыва (в секундах)
+    public float voidZoneReloadingTime; // время перезарядки войд зоны (задержка между соседними кастами в секундах)
+
     public Transform healthPanel;
     public HealthPanel healthPanelScript;
+    public GameObject AimRing;
 
     public Main main;
 
@@ -37,6 +44,11 @@ public class Enemy : MonoBehaviour
     NavMeshPath path;
     float pathDist;
     Vector3 targetDir;
+
+    bool moving;
+    public float timerForReloading;
+    public float timerForVoidZoneReloading;
+    public float timerForVoidZoneCasting;
 
     int i;
 
@@ -56,6 +68,10 @@ public class Enemy : MonoBehaviour
         curHealthPoint = maxHealthPoint;
 
         path = new NavMeshPath();
+
+        timerForVoidZoneReloading = Random.Range(0, voidZoneReloadingTime); // рандомный таймер для войд зоны (чтобы на старте все враги не начинали одновременный каст)
+        timerForReloading = reloadingTime;
+        timerForVoidZoneCasting = voidZoneDuration;
     }
 
     // Получение случайной точки на Navmesh
@@ -91,11 +107,47 @@ public class Enemy : MonoBehaviour
 
         if (main.player != null)
         {
+            // кастуем войд зону
+            if (voidZoneReloadingTime > 0) // исключаем из расчета тех врагов, кто вообще не кастер войд зон
+            {
+                timerForVoidZoneReloading += Time.deltaTime * main.curSlowerCoeff;
+                timerForVoidZoneCasting += Time.deltaTime * main.curSlowerCoeff;
+
+                if (timerForVoidZoneReloading >= voidZoneReloadingTime)
+                {
+                    VoidZone voidZone = main.voidZonesPool.GetChild(0).GetComponent<VoidZone>();
+                    voidZone.transform.parent = null;
+                    if ((main.player.transform.position - transform.position).magnitude <= shootRange)
+                    {
+                        voidZone.transform.position = main.player.transform.position;
+                    }
+                    else
+                    {
+                        GetRandomPoint(transform.position, shootRange * 1.5f);
+                        voidZone.transform.position = path.corners.Last();
+                    }
+                    voidZone.damage = voidZoneDamage;
+                    voidZone.radius = voidZoneRadius;
+                    voidZone.transform.localScale = Vector3.one * voidZoneRadius;
+                    voidZone.duration = voidZoneDuration;
+                    voidZone.isCasting = true;
+                    voidZone.Custer = this;
+
+                    timerForVoidZoneReloading = 0;
+                    timerForVoidZoneCasting = 0;
+                }
+
+                // пока враг кастует войд зон, он больше ничем не занимается
+                if (timerForVoidZoneCasting < voidZoneDuration) return;
+            }
+
             if ((main.player.transform.position - transform.position).magnitude <= shootRange && !Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.2f, main.player.transform.position - transform.position, out RChit, (main.player.transform.position - transform.position).magnitude, 1 << 9))
             {
+                // поворачиваемся а потом стреляем/бьем игрока
                 if (Vector3.Angle(transform.forward, main.player.transform.position - transform.position) <= 1f)
                 {
-                    if (!reloading)
+                    timerForReloading += Time.deltaTime * main.curSlowerCoeff;
+                    if (timerForReloading >= reloadingTime)
                     {
                         Rocket rocket = main.rocketsPool.GetChild(0).GetComponent<Rocket>();
                         rocket.transform.parent = null;
@@ -108,7 +160,7 @@ public class Enemy : MonoBehaviour
                         rocket.damage = rocketDamage;
                         rocket.direction = main.player.transform.position - transform.position;
 
-                        StartCoroutine(Reloading(reloadingTime));
+                        timerForReloading = 0;
                     }
                 }
                 else
@@ -123,7 +175,7 @@ public class Enemy : MonoBehaviour
                 {
                     if (!moving)
                     {
-                        GetRandomPoint(transform.position, shootRange * 2f);
+                        GetRandomPoint(transform.position, shootRange * 1.5f);
                         i = 1;
 
                         StartCoroutine(Moving(movingTime));
@@ -173,13 +225,6 @@ public class Enemy : MonoBehaviour
                 }
             }
         }
-    }
-
-    IEnumerator Reloading(float reloadingTime)
-    {
-        reloading = true;
-        yield return new WaitForSeconds(reloadingTime);
-        reloading = false;
     }
 
     IEnumerator Moving(float movingTime)

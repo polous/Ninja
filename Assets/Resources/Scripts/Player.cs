@@ -25,6 +25,7 @@ public class Player : MonoBehaviour
     public float curHealthPoint; // текущий запас здоровья
     public Transform healthPanel;
     public HealthPanel healthPanelScript;
+    public Transform RangeZone;
 
     public Joystick joy;
     public Transform SpawnPoint;
@@ -40,6 +41,8 @@ public class Player : MonoBehaviour
 
     void Start()
     {
+        RangeZone.localScale = new Vector3(shootRange, shootRange, shootRange);
+
         MPB = new MaterialPropertyBlock();
         mr = GetComponentInChildren<MeshRenderer>();
         mr.GetPropertyBlock(MPB);
@@ -118,6 +121,7 @@ public class Player : MonoBehaviour
         float nearestShootDist = shootRange;        
         foreach (Enemy e in main.enemies)
         {
+            e.AimRing.SetActive(false);
             if ((e.transform.position - transform.position).magnitude <= nearestShootDist && !Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.2f, e.transform.position - transform.position, out RChit, (e.transform.position - transform.position).magnitude, 1 << 9))
             {
                 myAim = e;
@@ -135,6 +139,7 @@ public class Player : MonoBehaviour
 
             if (myAim != null)
             {
+                myAim.AimRing.SetActive(true);
                 // если смотрим на врага, то стреляем в него
                 if (Vector3.Angle(transform.forward, myAim.transform.position - transform.position) <= 1f)
                 {

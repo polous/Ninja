@@ -9,6 +9,7 @@ public class Main : MonoBehaviour
 {
     public Player player; // префаб игрока
     public Transform rocketsPool; // пул прожектайлов
+    public Transform voidZonesPool; // пул войд зон
     public Transform healthPanelsPool; // пул UI панелей здоровья
     public Transform deathEffectsPool; // пул эффектов смерти
     public float matrixCoeff; // коэффициент замедления времени во время движения игрока 
@@ -23,7 +24,7 @@ public class Main : MonoBehaviour
 
     void Start()
     {
-        // заполняем пул прожектайлами
+        // заполняем пул прожектайлов
         for (int i = 0; i < 50; i++)
         {
             GameObject rocket = Instantiate(Resources.Load<GameObject>("Prefabs/Rocket")) as GameObject;
@@ -31,11 +32,19 @@ public class Main : MonoBehaviour
             rocket.GetComponent<Rocket>().main = this;
         }
 
-        // заполняем пул эффектами смерти
+        // заполняем пул эффектов смерти
         for (int i = 0; i < 20; i++)
         {
             GameObject DE = Instantiate(Resources.Load<GameObject>("Prefabs/DeathEffect")) as GameObject;
             DE.transform.SetParent(deathEffectsPool);
+        }
+
+        // заполняем пул войд зон
+        for (int i = 0; i < 10; i++)
+        {
+            GameObject voidzone = Instantiate(Resources.Load<GameObject>("Prefabs/VoidZone")) as GameObject;
+            voidzone.transform.SetParent(voidZonesPool);
+            voidzone.GetComponent<VoidZone>().main = this;
         }
 
         // находим игрока на сцене
@@ -98,6 +107,7 @@ public class Main : MonoBehaviour
         e.enabled = false;
         foreach (MeshRenderer mr in e.GetComponentsInChildren<MeshRenderer>()) mr.enabled = false;
         e.GetComponent<Collider>().enabled = false;
+        e.AimRing.SetActive(false);
 
         Transform deathEffect = deathEffectsPool.GetChild(0);
         deathEffect.SetParent(null);

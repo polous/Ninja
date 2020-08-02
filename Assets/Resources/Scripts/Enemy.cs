@@ -95,7 +95,7 @@ public class Enemy : MonoBehaviour
                     }
                 }
                 // если длина пути достаточная
-                if (pathDist >= maxDistance / 2f) return;
+                if (pathDist >= maxDistance * 2f / 3f) return;
             }
         }
     }
@@ -132,6 +132,11 @@ public class Enemy : MonoBehaviour
                     voidZone.duration = voidZoneDuration;
                     voidZone.isCasting = true;
                     voidZone.Custer = this;
+
+                    Transform vzce = main.voidZoneCastEffectsPool.GetChild(0);
+                    vzce.transform.parent = null;
+                    vzce.transform.position = transform.position;
+                    voidZone.castEffect = vzce;
 
                     timerForVoidZoneReloading = 0;
                     timerForVoidZoneCasting = 0;

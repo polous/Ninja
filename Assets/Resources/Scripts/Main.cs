@@ -10,6 +10,7 @@ public class Main : MonoBehaviour
     public Player player; // префаб игрока
     public Transform rocketsPool; // пул прожектайлов
     public Transform voidZonesPool; // пул войд зон
+    public Transform voidZoneCastEffectsPool; // пул эффектов кастования войд зоны
     public Transform healthPanelsPool; // пул UI панелей здоровья
     public Transform deathEffectsPool; // пул эффектов смерти
     public float matrixCoeff; // коэффициент замедления времени во время движения игрока 
@@ -45,6 +46,13 @@ public class Main : MonoBehaviour
             GameObject voidzone = Instantiate(Resources.Load<GameObject>("Prefabs/VoidZone")) as GameObject;
             voidzone.transform.SetParent(voidZonesPool);
             voidzone.GetComponent<VoidZone>().main = this;
+        }
+
+        // заполняем пул эффектов кастования войд зон
+        for (int i = 0; i < 10; i++)
+        {
+            GameObject voidzonecasteffect = Instantiate(Resources.Load<GameObject>("Prefabs/VoidZoneCastEffect")) as GameObject;
+            voidzonecasteffect.transform.SetParent(voidZoneCastEffectsPool);
         }
 
         // находим игрока на сцене

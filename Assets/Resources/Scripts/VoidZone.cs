@@ -13,6 +13,7 @@ public class VoidZone : MonoBehaviour
     public bool isCasting;
     public Enemy Custer; // враг, который кастует данную войд зону
     float timer = 0;
+    public Transform castEffect;
 
     public Main main;
 
@@ -28,6 +29,7 @@ public class VoidZone : MonoBehaviour
                 isCasting = false;
                 timer = 0;
                 transform.SetParent(main.voidZonesPool);
+                castEffect.SetParent(main.voidZoneCastEffectsPool);
                 return;
             }
 
@@ -36,10 +38,10 @@ public class VoidZone : MonoBehaviour
             {
                 explosion.SetActive(true);
                 isCasting = false;
+                castEffect.SetParent(main.voidZoneCastEffectsPool);
                 fillPanel.localScale = Vector3.zero;
                 timer = 0;
                 Player p = main.player;
-
                 if ((p.transform.position - transform.position).magnitude <= radius)
                 {                    
                     main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);

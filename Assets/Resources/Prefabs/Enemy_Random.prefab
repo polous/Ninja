@@ -317,7 +317,7 @@ MonoBehaviour:
   voidZoneDamage: 30
   voidZoneRadius: 4
   voidZoneDuration: 3
-  voidZoneReloadingTime: 12
+  voidZoneReloadingTime: 10
   healthPanel: {fileID: 0}
   healthPanelScript: {fileID: 0}
   AimRing: {fileID: 6190505037957114751}

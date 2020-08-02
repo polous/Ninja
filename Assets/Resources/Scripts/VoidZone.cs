@@ -42,6 +42,7 @@ public class VoidZone : MonoBehaviour
                 fillPanel.localScale = Vector3.zero;
                 timer = 0;
                 Player p = main.player;
+
                 if ((p.transform.position - transform.position).magnitude <= radius)
                 {                    
                     main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);
@@ -57,7 +58,7 @@ public class VoidZone : MonoBehaviour
                 Invoke("GoToPool", 1.5f);
                 return;
             }
-            fillPanel.localScale += Vector3.one * 0.38f * main.curSlowerCoeff * Time.deltaTime / duration;
+            fillPanel.localScale += Vector3.one * 0.77f * main.curSlowerCoeff * Time.deltaTime / duration;
         }
     }
 

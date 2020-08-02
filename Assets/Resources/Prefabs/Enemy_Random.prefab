@@ -315,7 +315,7 @@ MonoBehaviour:
   maxHealthPoint: 80
   curHealthPoint: 0
   voidZoneDamage: 30
-  voidZoneRadius: 4
+  voidZoneRadius: 2
   voidZoneDuration: 3
   voidZoneReloadingTime: 10
   healthPanel: {fileID: 0}

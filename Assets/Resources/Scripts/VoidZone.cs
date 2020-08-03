@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Analytics;
+using UnityEngine.UI;
 
 public class VoidZone : MonoBehaviour
 {
     public Transform fillPanel;
+    public SpriteRenderer Border;
     public float damage;
     public float radius;
     public int duration; // продолжительность от начала каста до непосредственно взрыва (в секундах)
@@ -37,6 +39,7 @@ public class VoidZone : MonoBehaviour
             if (timer >= duration)
             {
                 explosion.SetActive(true);
+                Border.enabled = false;
                 isCasting = false;
                 castEffect.SetParent(main.voidZoneCastEffectsPool);
                 fillPanel.localScale = Vector3.zero;
@@ -64,6 +67,7 @@ public class VoidZone : MonoBehaviour
 
     void GoToPool()
     {
+        Border.enabled = true;
         explosion.SetActive(false);
         transform.SetParent(main.voidZonesPool);
     }

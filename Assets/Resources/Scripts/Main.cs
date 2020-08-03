@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Analytics;
+using UnityEngine.PlayerLoop;
 using UnityEngine.UI;
 
 public class Main : MonoBehaviour
@@ -21,6 +22,7 @@ public class Main : MonoBehaviour
     public List<Enemy> enemies = new List<Enemy>();
 
     public Text MessagePanel;
+    public Text Timer;
 
 
     void Start()
@@ -129,7 +131,7 @@ public class Main : MonoBehaviour
 
         if (enemies.Count == 0)
         {
-            MessagePanel.text = "ТЫ ПОБЕДИЛ!\n ёпта";
+            MessagePanel.text = "ТЫ ПОБЕДИЛ!\n за " + Timer.text + " секунд";
         }
     }
 
@@ -157,5 +159,10 @@ public class Main : MonoBehaviour
         Destroy(p.healthPanel.gameObject);
 
         MessagePanel.text = "ТЫ ПРОИГРАЛ!\n ёпта";
+    }
+
+    void LateUpdate()
+    {
+        Timer.text = Time.time.ToString("F0");
     }
 }

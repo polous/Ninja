@@ -142,7 +142,7 @@ public class Enemy : MonoBehaviour
                     timerForVoidZoneCasting = 0;
                 }
 
-                // пока враг кастует войд зон, он больше ничем не занимается
+                // пока враг кастует войд зону, он больше ничем не занимается
                 if (timerForVoidZoneCasting < voidZoneDuration) return;
             }
 

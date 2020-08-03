@@ -47,6 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fillPanel: {fileID: 6521799092446768309}
+  Border: {fileID: 6521799091513211672}
   damage: 0
   radius: 0
   duration: 3

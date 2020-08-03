@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.PlayerLoop;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class Main : MonoBehaviour
@@ -23,10 +24,15 @@ public class Main : MonoBehaviour
 
     public Text MessagePanel;
     public Text Timer;
+    float globalTimer;
+
+    public GameObject RepeatButton;
 
 
     void Start()
     {
+        globalTimer = 0;
+
         // заполняем пул прожектайлов
         for (int i = 0; i < 50; i++)
         {
@@ -132,6 +138,8 @@ public class Main : MonoBehaviour
         if (enemies.Count == 0)
         {
             MessagePanel.text = "ТЫ ПОБЕДИЛ!\n за " + Timer.text + " секунд";
+
+            RepeatButton.SetActive(true);
         }
     }
 
@@ -159,10 +167,19 @@ public class Main : MonoBehaviour
         Destroy(p.healthPanel.gameObject);
 
         MessagePanel.text = "ТЫ ПРОИГРАЛ!\n ёпта";
+
+        RepeatButton.SetActive(true);
     }
 
     void LateUpdate()
     {
-        Timer.text = Time.time.ToString("F0");
+        globalTimer += Time.deltaTime;
+        Timer.text = globalTimer.ToString("F0");
+    }
+
+    public void ResetCurrentLevel()
+    {
+        globalTimer = 0;
+        SceneManager.LoadScene("Main");
     }
 }

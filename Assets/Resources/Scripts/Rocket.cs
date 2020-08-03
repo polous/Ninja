@@ -13,6 +13,8 @@ public class Rocket : MonoBehaviour
     public bool flying; // летит ли?
     public Vector3 direction; // направление полета
 
+    public float spreadCoeff; // разброс относительно точного направления на цель
+
     public Rigidbody rb;
     public Main main;
 

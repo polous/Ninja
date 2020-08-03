@@ -19,6 +19,8 @@ public class Enemy : MonoBehaviour
     public float rotateSpeed; // скорость поворота
     public float movingTime; // время в пути (после него идет переопределение пути)
 
+    public float shootSpreadCoeff; // коэффициент разброса пуль
+
     public int rocketDamage; // текущий урон от оружия
     public float rocketSpeed; // скорость полета пули
     public float reloadingTime; // время перезарядки оружия (задержка между соседними атаками в секундах)
@@ -46,9 +48,9 @@ public class Enemy : MonoBehaviour
     Vector3 targetDir;
 
     bool moving;
-    public float timerForReloading;
-    public float timerForVoidZoneReloading;
-    public float timerForVoidZoneCasting;
+    float timerForReloading;
+    float timerForVoidZoneReloading;
+    float timerForVoidZoneCasting;
 
     int i;
 
@@ -163,7 +165,12 @@ public class Enemy : MonoBehaviour
                         rocket.flying = true;
                         rocket.speed = rocketSpeed;
                         rocket.damage = rocketDamage;
-                        rocket.direction = main.player.transform.position - transform.position;
+
+                        Vector3 randomVector = new Vector3(Random.Range(-shootSpreadCoeff, +shootSpreadCoeff), 0, Random.Range(-shootSpreadCoeff, +shootSpreadCoeff));
+                        Vector3 lastPoint = transform.position + (main.player.transform.position - transform.position).normalized * shootRange + randomVector;
+                        Vector3 direction = lastPoint - transform.position;
+
+                        rocket.direction = direction;
 
                         timerForReloading = 0;
                     }

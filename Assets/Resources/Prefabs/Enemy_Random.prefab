@@ -309,8 +309,9 @@ MonoBehaviour:
   shootRange: 5
   rotateSpeed: 4
   movingTime: 4
+  shootSpreadCoeff: 0
   rocketDamage: 5
-  rocketSpeed: 5
+  rocketSpeed: 10
   reloadingTime: 2
   maxHealthPoint: 80
   curHealthPoint: 0
@@ -323,9 +324,6 @@ MonoBehaviour:
   AimRing: {fileID: 6190505037957114751}
   main: {fileID: 0}
   MT: 0
-  timerForReloading: 0
-  timerForVoidZoneReloading: 0
-  timerForVoidZoneCasting: 0
   bodyColor: {r: 1, g: 0.8792604, b: 0.4292453, a: 1}
   mr: {fileID: 0}
 --- !u!1 &6190505037957114751

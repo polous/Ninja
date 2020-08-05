@@ -26,18 +26,18 @@ public class Enemy : MonoBehaviour
     public float reloadingTime; // время перезарядки оружия (задержка между соседними атаками в секундах)
 
     public float maxHealthPoint; // максимальный запас здоровья
-    public float curHealthPoint; // текущий запас здоровья
+    [HideInInspector] public float curHealthPoint; // текущий запас здоровья
 
     public float voidZoneDamage; // урон от войд зоны
     public float voidZoneRadius; // радиус войд зоны
     public int voidZoneDuration; // продолжительность от начала каста до непосредственно взрыва (в секундах)
     public float voidZoneReloadingTime; // время перезарядки войд зоны (задержка между соседними кастами в секундах)
 
-    public Transform healthPanel;
-    public HealthPanel healthPanelScript;
-    public GameObject AimRing;
+    [HideInInspector] public Transform healthPanel;
+    [HideInInspector] public HealthPanel healthPanelScript;
+    [HideInInspector] public GameObject AimRing;
 
-    public Main main;
+    [HideInInspector] public Main main;
 
     public moveType MT;
 
@@ -48,6 +48,10 @@ public class Enemy : MonoBehaviour
     Vector3 targetDir;
 
     bool moving;
+    //bool rotating;
+    //float curAng, targAng;
+    //int rotateDir;
+    Vector3 fwd, dir;
     float timerForReloading;
     float timerForVoidZoneReloading;
     float timerForVoidZoneCasting;
@@ -55,8 +59,8 @@ public class Enemy : MonoBehaviour
     int i;
 
     public Color bodyColor;
-    public MaterialPropertyBlock MPB;
-    public MeshRenderer mr;
+    [HideInInspector] public MaterialPropertyBlock MPB;
+    [HideInInspector] public MeshRenderer mr;
 
 
     void Start()
@@ -104,8 +108,10 @@ public class Enemy : MonoBehaviour
 
 
     void Update()
-    {
+    {       
         healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
+
+        if (!main.readyToGo) return;
 
         if (main.player != null)
         {
@@ -148,12 +154,57 @@ public class Enemy : MonoBehaviour
                 if (timerForVoidZoneCasting < voidZoneDuration) return;
             }
 
+            fwd = transform.forward; fwd.y = 0;
+            dir = main.player.transform.position - transform.position; dir.y = 0;
             if ((main.player.transform.position - transform.position).magnitude <= shootRange && !Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.2f, main.player.transform.position - transform.position, out RChit, (main.player.transform.position - transform.position).magnitude, 1 << 9))
             {
+                #region
+                //if (!rotating)
+                //{
+                //    if (Vector3.Angle(transform.forward, main.player.transform.position - transform.position) > 0)
+                //    {
+                //        rotating = true;
+
+                //        Vector3 curDir = main.player.transform.position - transform.position; curDir.y = 0f;
+                //        Vector3 fwd = transform.forward; fwd.y = 0;
+                //        targAng = Vector3.Angle(fwd, curDir);
+                //        curAng = 0f;
+                //        rotateDir = TypeOfTurn(curDir); // определяем, в какую сторону он будет поворачиваться - влево или вправо
+                //    }
+                //    else
+                //    {
+                //        print("shoot");
+                //    }
+                //}
+                //else
+                //{
+                //    float step = rotateSpeed * Time.deltaTime * main.curSlowerCoeff;
+                //    if (curAng + step > targAng)
+                //    {
+                //        // Докручиваем до нашего угла
+                //        transform.rotation = Quaternion.LookRotation(main.player.transform.position - transform.position);
+                //        rotating = false;
+                //    }
+                //    else
+                //    {
+                //        curAng += step;
+
+                //        if (rotateDir == 1)
+                //        {
+                //            transform.Rotate(Vector3.up, step);
+                //        }
+                //        else
+                //        {
+                //            transform.Rotate(-Vector3.up, step);
+                //        }
+                //    }
+                //}
+                #endregion
+
                 // поворачиваемся а потом стреляем/бьем игрока
-                if (Vector3.Angle(transform.forward, main.player.transform.position - transform.position) <= 1f)
+                timerForReloading += Time.deltaTime * main.curSlowerCoeff;
+                if (Vector3.Angle(fwd, dir) <= 1f)
                 {
-                    timerForReloading += Time.deltaTime * main.curSlowerCoeff;
                     if (timerForReloading >= reloadingTime)
                     {
                         Rocket rocket = main.rocketsPool.GetChild(0).GetComponent<Rocket>();
@@ -177,15 +228,14 @@ public class Enemy : MonoBehaviour
                 }
                 else
                 {
-                    targetDir = main.player.transform.position - transform.position; targetDir.y = 0;
-                    transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
+                    transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, dir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
                 }
             }
             else
             {
                 if (MT == moveType.Random)
                 {
-                    if (!moving)
+                    if (!moving && moveSpeed > 0)
                     {
                         GetRandomPoint(transform.position, shootRange * 1.5f);
                         i = 1;
@@ -198,7 +248,7 @@ public class Enemy : MonoBehaviour
                         {
                             transform.position = Vector3.MoveTowards(transform.position, path.corners[i], Time.deltaTime * moveSpeed * main.curSlowerCoeff);
                             targetDir = path.corners[i] - transform.position; targetDir.y = 0;
-                            transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
+                            transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
 
                             if ((path.corners[i] - transform.position).magnitude <= 0.01f) i++;
                         }
@@ -211,7 +261,7 @@ public class Enemy : MonoBehaviour
 
                 else if (MT == moveType.Follow)
                 {
-                    if (!moving)
+                    if (!moving && moveSpeed > 0)
                     {
                         NavMesh.CalculatePath(transform.position, main.player.transform.position, NavMesh.AllAreas, path);
                         i = 1;
@@ -224,7 +274,7 @@ public class Enemy : MonoBehaviour
                         {
                             transform.position = Vector3.MoveTowards(transform.position, path.corners[i], Time.deltaTime * moveSpeed * main.curSlowerCoeff);
                             targetDir = path.corners[i] - transform.position; targetDir.y = 0;
-                            transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
+                            transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
                             //if (transform.position != path.corners[i]) transform.rotation = Quaternion.LookRotation(targetDir);
 
                             if ((path.corners[i] - transform.position).magnitude <= 0.01f) i++;
@@ -244,5 +294,41 @@ public class Enemy : MonoBehaviour
         moving = true;
         yield return new WaitForSeconds(movingTime);
         moving = false;
+    }
+
+    // ФУНКЦИЯ ОПРЕДЕЛЕНИЯ НАПРАВЛЕНИЯ ПОВОРОТА (ВЛЕВО ИЛИ ВПРАВО)
+    int TypeOfTurn(Vector3 dir)
+    {
+        Quaternion b = Quaternion.LookRotation(dir);
+        Quaternion a = transform.rotation;
+        float _a = a.eulerAngles.y;
+        float _b = b.eulerAngles.y;
+
+        if (_a >= 180f && _b >= 180f)
+        {
+            _b = _b - _a;
+            if (_b >= 0) return 1;
+            else return -1;
+        }
+        else if (_a <= 180f && _b <= 180f)
+        {
+            _b = _b - _a;
+            if (_b >= 0) return 1;
+            else return - 1;
+        }
+        else if (_a >= 180f && _b <= 180f)
+        {
+            _b = _b - _a + 180f;
+            if (_b <= 0) return 1;
+            else return -1;
+        }
+        else if (_a <= 180f && _b >= 180f)
+        {
+            _b = _b - _a - 180f;
+            if (_b <= 0) return 1;
+            else return -1;
+        }
+        else
+            return 1;
     }
 }

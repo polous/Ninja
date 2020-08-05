@@ -291,6 +291,10 @@ PrefabInstance:
       propertyPath: InitialModule.maxNumParticles
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 19900004, guid: e076683e0305e35498b8e8834978c0fa, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e076683e0305e35498b8e8834978c0fa, type: 3}
 --- !u!1 &6264550794216885966 stripped

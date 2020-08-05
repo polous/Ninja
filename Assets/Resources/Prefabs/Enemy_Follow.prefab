@@ -223,14 +223,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2631890a0dbc72644a0f5b92210c6294, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1.5
+  moveSpeed: 1
   shootRange: 1
-  rotateSpeed: 4
+  rotateSpeed: 2
   movingTime: 0.05
+  shootSpreadCoeff: 0
   rocketDamage: 20
   rocketSpeed: 50
-  reloadingTime: 2
-  maxHealthPoint: 120
+  reloadingTime: 1
+  maxHealthPoint: 100
   curHealthPoint: 0
   voidZoneDamage: 0
   voidZoneRadius: 0
@@ -241,9 +242,6 @@ MonoBehaviour:
   AimRing: {fileID: 5263654954210106862}
   main: {fileID: 0}
   MT: 1
-  timerForReloading: 0
-  timerForVoidZoneReloading: 0
-  timerForVoidZoneCasting: 0
   bodyColor: {r: 1, g: 0.33490568, b: 0.7795269, a: 1}
   mr: {fileID: 0}
 --- !u!1 &4552904705483101395

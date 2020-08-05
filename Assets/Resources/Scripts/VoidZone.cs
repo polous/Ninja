@@ -46,15 +46,18 @@ public class VoidZone : MonoBehaviour
                 timer = 0;
                 Player p = main.player;
 
-                if ((p.transform.position - transform.position).magnitude <= radius)
-                {                    
-                    main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);
-
-                    p.curHealthPoint -= damage;
-                    p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, damage);
-                    if (p.curHealthPoint <= 0)
+                if (p != null)
+                {
+                    if ((p.transform.position - transform.position).magnitude <= radius)
                     {
-                        main.PlayerDie(p);
+                        main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);
+
+                        p.curHealthPoint -= damage;
+                        p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, damage);
+                        if (p.curHealthPoint <= 0)
+                        {
+                            main.PlayerDie(p);
+                        }
                     }
                 }
 

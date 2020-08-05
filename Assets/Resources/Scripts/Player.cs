@@ -17,29 +17,34 @@ public class Player : MonoBehaviour
     public float maxEnergy; // максимальный запас энергии
     public float matrixEnergyDrop; // расход энергии на вход в матрицу
     public float energyGrowPerSec; // расход энергии в секунду в матрице
+    public float freeSlowMoTime; // время перемещения без затрат энергии
     public float energyRecoveryPerSec; // восстановление энергии в секунду вне матрицы
-    public float curEnergy; // текущий запас энергии
-    public float sPrev, sCur;
+    [HideInInspector] public float curEnergy; // текущий запас энергии
+    float sPrev, sCur;
     public float maxHealthPoint; // максимальный запас здоровья
-    public float curHealthPoint; // текущий запас здоровья
-    public Transform healthPanel;
-    public HealthPanel healthPanelScript;
-    public Transform RangeZone;
+    [HideInInspector] public float curHealthPoint; // текущий запас здоровья
+    [HideInInspector] public Transform healthPanel;
+    [HideInInspector] public HealthPanel healthPanelScript;
+    [HideInInspector] public Transform RangeZone;
 
-    public Joystick joy;
-    public Transform SpawnPoint;
+    public float freeSlowMoTimer;
+
     Transform CamTarget;
-    public Main main;
+    [HideInInspector] public Main main;
+    Joystick joy;
     RaycastHit RChit;
 
     Enemy myAim;
 
     public Color bodyColor;
-    public MaterialPropertyBlock MPB;
-    public MeshRenderer mr;
+    [HideInInspector] public MaterialPropertyBlock MPB;
+    [HideInInspector] public MeshRenderer mr;
+
+    public bool inMatrix;
 
     void Start()
     {
+        inMatrix = false;
         RangeZone.localScale = new Vector3(shootRange, shootRange, shootRange);
 
         MPB = new MaterialPropertyBlock();
@@ -50,11 +55,15 @@ public class Player : MonoBehaviour
 
         CamTarget = GameObject.Find("CamTarget").transform;
         // располагаем игрока в его стартовой позиции на сцене
-        transform.position = SpawnPoint.position;
+        transform.position = main.playerSpawnPoint.position;
         s = 0;
         curEnergy = maxEnergy;
         curHealthPoint = maxHealthPoint;
         UIRefresh(curEnergy);
+
+        joy = main.joy;
+
+        freeSlowMoTimer = freeSlowMoTime;
     }
 
     // обновление UI
@@ -68,11 +77,13 @@ public class Player : MonoBehaviour
     {
         healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
 
+        if (!main.readyToGo) return;
+
         myAim = null;
         sPrev = s;
         // определяем и задаем направление движения
         Vector3 direction = Vector3.forward * joy.Vertical + Vector3.right * joy.Horizontal;
-        if (direction.magnitude <= 0.05f) s = 0;
+        if (direction.magnitude == 0) s = 0;
         else s = moveSpeed;
         sCur = s;
 
@@ -81,11 +92,17 @@ public class Player : MonoBehaviour
         {
             if (sPrev == 0 && sCur > 0)
             {
-                if(curEnergy >= matrixEnergyDrop)
+                if (curEnergy >= matrixEnergyDrop)
                 {
-                    // тратим энергию перманентно на активацию (опционально: если это не нужно, то matrixEnergyDrop установить рааным 0)
-                    curEnergy -= matrixEnergyDrop;
-                    UIRefresh(curEnergy);
+                    if (inMatrix == false)
+                    {
+                        // тратим энергию перманентно на активацию (опционально: если это не нужно, то matrixEnergyDrop установить рааным 0)
+                        curEnergy -= matrixEnergyDrop;
+                        UIRefresh(curEnergy);
+                        freeSlowMoTimer = freeSlowMoTime;
+                        inMatrix = true;
+                        main.ToneMap.enabled = true;
+                    }
                 }
                 else
                 {
@@ -95,11 +112,17 @@ public class Player : MonoBehaviour
         }
 
         // включаем режим МАТРИЦА
-        if (s != 0)
+        if (inMatrix)
         {
             main.curSlowerCoeff = main.matrixCoeff;
+            freeSlowMoTimer -= Time.deltaTime;
+            if (freeSlowMoTimer < 0) freeSlowMoTimer = 0;
+
             // тратим энергию посекундно (опционально: если это не нужно, то energyGrowPerSec установить равным 0)
-            if (curEnergy > 0) curEnergy -= energyGrowPerSec * Time.deltaTime;
+            if (curEnergy > 0)
+            {
+                if (freeSlowMoTimer == 0) curEnergy -= energyGrowPerSec * Time.deltaTime;
+            }
             else
             {
                 curEnergy = 0;
@@ -110,14 +133,14 @@ public class Player : MonoBehaviour
         else main.curSlowerCoeff = 1;
 
         // двигаем и поворачиваем игрока в заданном направлении        
-        if (s != 0)
+        if (s > 0 && inMatrix)
         {
             transform.position += direction.normalized * s * Time.deltaTime;
             transform.rotation = Quaternion.LookRotation(direction);
         }
 
         // определяем близжайщего видимого (не закрытого препятствиями) врага
-        float nearestShootDist = shootRange;        
+        float nearestShootDist = shootRange;
         foreach (Enemy e in main.enemies)
         {
             e.AimRing.SetActive(false);
@@ -130,7 +153,7 @@ public class Player : MonoBehaviour
 
         // если игрок стоит (скорость передвижения == 0), то он долбит по ближайшему врагу
         // и восстанавливает энергию
-        if (s == 0)
+        if (s == 0 && !inMatrix)
         {
             if (curEnergy < maxEnergy) curEnergy += energyRecoveryPerSec * Time.deltaTime;
             else curEnergy = maxEnergy;
@@ -140,7 +163,9 @@ public class Player : MonoBehaviour
             {
                 myAim.AimRing.SetActive(true);
                 // если смотрим на врага, то стреляем в него
-                if (Vector3.Angle(transform.forward, myAim.transform.position - transform.position) <= 1f)
+                Vector3 fwd = transform.forward; fwd.y = 0;
+                Vector3 dir = myAim.transform.position - transform.position; dir.y = 0;
+                if (Vector3.Angle(fwd, dir) <= 1f)
                 {
                     if (!reloading)
                     {
@@ -162,10 +187,7 @@ public class Player : MonoBehaviour
                 // иначе поворачиваемся на врага для стрельбы
                 else
                 {
-                    Vector3 targetDir = myAim.transform.position - transform.position;
-                    Vector3 newDir = Vector3.RotateTowards(transform.forward, targetDir, rotateSpeed * Time.deltaTime, 0);
-
-                    transform.rotation = Quaternion.LookRotation(newDir);
+                    transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, dir, rotateSpeed * Time.deltaTime, 0));
                 }
             }
         }

@@ -19,19 +19,29 @@ public class Main : MonoBehaviour
     public float curSlowerCoeff; // текущее замедление (либо нормальная скорость [=1], либо пониженная [=matrixCoeff])
     public Image EnergySlider;
     public Text EnergyCount;
+    public Transform playerSpawnPoint;
+    public Joystick joy;
 
     public List<Enemy> enemies = new List<Enemy>();
 
     public Text MessagePanel;
     public Text Timer;
     float globalTimer;
+    
+    public bool readyToGo;
 
     public GameObject RepeatButton;
+    public GameObject StartButton;
+
+    public Image ToneMap;
 
 
     void Start()
     {
         globalTimer = 0;
+        readyToGo = false;
+        joy.main = this;
+        StartButton.SetActive(true);
 
         // заполняем пул прожектайлов
         for (int i = 0; i < 50; i++)
@@ -166,20 +176,47 @@ public class Main : MonoBehaviour
         Destroy(p.gameObject);
         Destroy(p.healthPanel.gameObject);
 
-        MessagePanel.text = "ТЫ ПРОИГРАЛ!\n ёпта";
+        MessagePanel.text = "ТЫ ПРОИГРАЛ!";
 
         RepeatButton.SetActive(true);
     }
 
     void LateUpdate()
     {
-        globalTimer += Time.deltaTime;
-        Timer.text = globalTimer.ToString("F0");
+        if (readyToGo && player != null && enemies.Count > 0)
+        {
+            globalTimer += Time.deltaTime;
+            Timer.text = globalTimer.ToString("F0");
+        }
     }
 
     public void ResetCurrentLevel()
     {
-        globalTimer = 0;
         SceneManager.LoadScene("Main");
+    }
+
+    public void StartCurrentLevel()
+    {
+        StartButton.SetActive(false);
+        StartCoroutine(StartTimer());
+    }
+
+    public IEnumerator StartTimer()
+    {
+        MessagePanel.text = "3";
+        yield return new WaitForSeconds(1);
+        MessagePanel.text = "2";
+        yield return new WaitForSeconds(1);
+        MessagePanel.text = "1";
+        yield return new WaitForSeconds(1);
+        MessagePanel.text = "GO!!!";
+        yield return new WaitForSeconds(1);
+        readyToGo = true;
+        MessagePanel.text = "";
+    }
+
+    public void stopAllCorutines()
+    {
+        StopAllCoroutines();
     }
 }

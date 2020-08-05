@@ -305,17 +305,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2631890a0dbc72644a0f5b92210c6294, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 2
+  moveSpeed: 3
   shootRange: 5
-  rotateSpeed: 4
+  rotateSpeed: 2
   movingTime: 4
-  shootSpreadCoeff: 0
-  rocketDamage: 5
-  rocketSpeed: 10
-  reloadingTime: 2
+  shootSpreadCoeff: 1
+  rocketDamage: 10
+  rocketSpeed: 5
+  reloadingTime: 0.7
   maxHealthPoint: 80
   curHealthPoint: 0
-  voidZoneDamage: 30
+  voidZoneDamage: 25
   voidZoneRadius: 2
   voidZoneDuration: 3
   voidZoneReloadingTime: 10

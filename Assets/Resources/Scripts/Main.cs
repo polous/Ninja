@@ -198,7 +198,8 @@ public class Main : MonoBehaviour
     public void StartCurrentLevel()
     {
         StartButton.SetActive(false);
-        StartCoroutine(StartTimer());
+        //StartCoroutine(StartTimer());
+        readyToGo = true;
     }
 
     public IEnumerator StartTimer()

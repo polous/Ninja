@@ -257,7 +257,7 @@ GameObject:
   - component: {fileID: 770656180228546830}
   - component: {fileID: 770656180228546824}
   m_Layer: 10
-  m_Name: Enemy_Hold
+  m_Name: Enemy_Random_Shooter
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -305,15 +305,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2631890a0dbc72644a0f5b92210c6294, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 0
-  shootRange: 15
-  rotateSpeed: 1
-  movingTime: 4
-  shootSpreadCoeff: 1.5
-  rocketDamage: 10
-  rocketSpeed: 5
-  reloadingTime: 0.5
-  maxHealthPoint: 80
+  moveSpeed: 5
+  shootRange: 5
+  rotateSpeed: 5
+  movingTime: 5
+  shootSpreadCoeff: 0.5
+  rocketDamage: 15
+  rocketSpeed: 4
+  reloadingTime: 0.4
+  maxHealthPoint: 60
   curHealthPoint: 0
   voidZoneCastRange: 0
   voidZoneDamage: 0
@@ -325,7 +325,7 @@ MonoBehaviour:
   AimRing: {fileID: 6190505037957114751}
   main: {fileID: 0}
   MT: 0
-  bodyColor: {r: 0.27450982, g: 0.2509804, b: 0.39215687, a: 1}
+  bodyColor: {r: 0.95294124, g: 0.49803925, b: 0, a: 1}
   mr: {fileID: 0}
 --- !u!1 &6190505037957114751
 GameObject:

@@ -135,7 +135,7 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         input = Vector2.zero;
         handle.anchoredPosition = Vector2.zero;
 
-        main.player.inMatrix = false;
+        if (main.player != null) main.player.inMatrix = false;
         main.ToneMap.enabled = false;
 
         // по тапу отменим стартовый таймер

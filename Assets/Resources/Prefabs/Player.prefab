@@ -176,15 +176,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 5
   shootRange: 5
-  rocketDamage: 15
+  rocketDamage: 8
   rocketSpeed: 20
-  reloadingTime: 0.4
+  reloadingTime: 0.1
   rotateSpeed: 30
   maxEnergy: 100
-  matrixEnergyDrop: 20
-  energyGrowPerSec: 5
-  freeSlowMoTime: 2
-  energyRecoveryPerSec: 10
+  matrixEnergyDrop: 10
+  energyGrowPerSec: 10
+  freeSlowMoTime: 1.2
+  energyRecoveryPerSec: 12
   curEnergy: 0
   maxHealthPoint: 100
   curHealthPoint: 0
@@ -203,7 +203,7 @@ NavMeshAgent:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7864841371002786744}
-  m_Enabled: 1
+  m_Enabled: 0
   m_AgentTypeID: 0
   m_Radius: 0.5
   m_Speed: 3.5

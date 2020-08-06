@@ -27,24 +27,22 @@ public class Main : MonoBehaviour
     public Text MessagePanel;
     public Text Timer;
     float globalTimer;
-    
+
     public bool readyToGo;
 
     public GameObject RepeatButton;
+    public GameObject NextButton;
     public GameObject StartButton;
 
     public Image ToneMap;
 
+    public List<GameObject> dontDestroyOnLoadGameObjects;
 
-    void Start()
+
+    void Awake()
     {
-        globalTimer = 0;
-        readyToGo = false;
-        joy.main = this;
-        StartButton.SetActive(true);
-
         // заполняем пул прожектайлов
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < 100; i++)
         {
             GameObject rocket = Instantiate(Resources.Load<GameObject>("Prefabs/Rocket")) as GameObject;
             rocket.transform.SetParent(rocketsPool);
@@ -52,14 +50,14 @@ public class Main : MonoBehaviour
         }
 
         // заполняем пул эффектов смерти
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 30; i++)
         {
             GameObject DE = Instantiate(Resources.Load<GameObject>("Prefabs/DeathEffect")) as GameObject;
             DE.transform.SetParent(deathEffectsPool);
         }
 
         // заполняем пул войд зон
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 30; i++)
         {
             GameObject voidzone = Instantiate(Resources.Load<GameObject>("Prefabs/VoidZone")) as GameObject;
             voidzone.transform.SetParent(voidZonesPool);
@@ -67,23 +65,44 @@ public class Main : MonoBehaviour
         }
 
         // заполняем пул эффектов кастования войд зон
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 30; i++)
         {
             GameObject voidzonecasteffect = Instantiate(Resources.Load<GameObject>("Prefabs/VoidZoneCastEffect")) as GameObject;
             voidzonecasteffect.transform.SetParent(voidZoneCastEffectsPool);
         }
+    }
+
+
+    void Start()
+    {
+        StartScene();
+    }
+
+
+    void StartScene()
+    {
+        MessagePanel.text = "";
+        Timer.text = "";
+        globalTimer = 0;
+        readyToGo = false;
+        joy.main = this;
+        StartButton.SetActive(true);
+        RepeatButton.SetActive(false);
+        NextButton.SetActive(false);
 
         // находим игрока на сцене
-        player = FindObjectOfType<Player>();
+        player = Instantiate(Resources.Load<GameObject>("Prefabs/Player")).GetComponent<Player>();
+        player.main = this;
         // инстанциируем для игрока хэлс бар
         Transform hPanelp = Instantiate(Resources.Load<GameObject>("Prefabs/healthPanel")).transform;
         hPanelp.SetParent(healthPanelsPool);
         hPanelp.localScale = new Vector3(1, 1, 1);
         player.healthPanel = hPanelp;
         player.healthPanelScript = hPanelp.GetComponent<HealthPanel>();
+        player.StartScene();
 
         curSlowerCoeff = 1; // на старте игры скорость игры нормальная
-        
+
         // находим врагов на сцене
         enemies = FindObjectsOfType<Enemy>().ToList();
         foreach (Enemy e in enemies)
@@ -95,8 +114,10 @@ public class Main : MonoBehaviour
             hPanele.localScale = new Vector3(1, 1, 1);
             e.healthPanel = hPanele;
             e.healthPanelScript = hPanele.GetComponent<HealthPanel>();
-         }
+            e.StartScene();
+        }
     }
+
 
     public void BodyHitReaction(MeshRenderer mr, MaterialPropertyBlock MPB, Color color)
     {
@@ -128,7 +149,6 @@ public class Main : MonoBehaviour
     // убиваем врага
     IEnumerator EnemyDeath(Enemy e)
     {
-        enemies.Remove(e);
         e.healthPanel.GetComponent<Image>().enabled = false;
         e.enabled = false;
         foreach (MeshRenderer mr in e.GetComponentsInChildren<MeshRenderer>()) mr.enabled = false;
@@ -139,17 +159,41 @@ public class Main : MonoBehaviour
         deathEffect.SetParent(null);
         deathEffect.position = e.transform.position;
 
+        enemies.Remove(e);
+
         yield return new WaitForSeconds(1);
 
         deathEffect.SetParent(deathEffectsPool);
         Destroy(e.gameObject);
         Destroy(e.healthPanel.gameObject);
 
-        if (enemies.Count == 0)
-        {
-            MessagePanel.text = "ТЫ ПОБЕДИЛ!\n за " + Timer.text + " секунд";
+        StartCoroutine(EndOfBattle());
+    }
 
+    IEnumerator WaitLastFlyingRocket()
+    {
+        while (true)
+        {
+            if (FindObjectsOfType<Rocket>().Length == 0) yield break;
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
+    IEnumerator EndOfBattle()
+    {
+        yield return StartCoroutine(WaitLastFlyingRocket());
+        yield return null;
+        if (player != null && enemies.Count == 0)
+        {
+            MessagePanel.text = "ТЫ ПОБЕДИЛ!\n за " + Timer.text + " сек";
             RepeatButton.SetActive(true);
+            NextButton.SetActive(true);
+        }
+        else if (player == null)
+        {
+            MessagePanel.text = "ТЫ ПРОИГРАЛ!";
+            RepeatButton.SetActive(true);
+            NextButton.SetActive(false);
         }
     }
 
@@ -170,15 +214,18 @@ public class Main : MonoBehaviour
         deathEffect.SetParent(null);
         deathEffect.position = p.transform.position;
 
+        p.inMatrix = false;
+        curSlowerCoeff = 1;
+        ToneMap.enabled = false;
+        player = null;
+
         yield return new WaitForSeconds(1);
 
         deathEffect.SetParent(deathEffectsPool);
         Destroy(p.gameObject);
         Destroy(p.healthPanel.gameObject);
 
-        MessagePanel.text = "ТЫ ПРОИГРАЛ!";
-
-        RepeatButton.SetActive(true);
+        StartCoroutine(EndOfBattle());
     }
 
     void LateUpdate()
@@ -192,7 +239,85 @@ public class Main : MonoBehaviour
 
     public void ResetCurrentLevel()
     {
-        SceneManager.LoadScene("Main");
+        StartCoroutine(resetCurrentLevel());
+    }
+
+    IEnumerator resetCurrentLevel()
+    {
+        if (player != null)
+        {
+            Destroy(player.healthPanel.gameObject);
+            Destroy(player.gameObject);
+
+            yield return null;
+        }
+
+        int curSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        if (curSceneIndex == 0)
+        {
+            SceneManager.LoadScene(curSceneIndex);
+        }
+        else
+        {
+            foreach (Enemy e in enemies)
+            {
+                Destroy(e.healthPanel.gameObject);
+            }
+
+            foreach (GameObject go in dontDestroyOnLoadGameObjects)
+            {
+                DontDestroyOnLoad(go);
+            }
+
+            yield return null;
+
+            AsyncOperation operation = SceneManager.LoadSceneAsync(curSceneIndex);
+            while (!operation.isDone)
+            {
+                yield return null;
+            }
+
+            // прогрузилась сцена
+            yield return null;
+            StartScene();
+        }
+    }
+
+    public void LoadNextLevel()
+    {
+        StartCoroutine(loadNextLevel());
+    }
+
+    IEnumerator loadNextLevel()
+    {
+        int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+        if (SceneManager.sceneCountInBuildSettings == nextSceneIndex)
+        {
+            MessagePanel.text = "Ты прошел все уровни!\nХочешь играть дальше?\nСоздай новые!";
+            yield break;
+        }
+
+        Destroy(player.healthPanel.gameObject);
+        Destroy(player.gameObject);
+
+        yield return null;
+
+        foreach (GameObject go in dontDestroyOnLoadGameObjects)
+        {
+            DontDestroyOnLoad(go);
+        }
+
+        yield return null;
+
+        AsyncOperation operation = SceneManager.LoadSceneAsync(nextSceneIndex);
+        while (!operation.isDone)
+        {
+            yield return null;
+        }
+
+        // прогрузилась сцена
+        yield return null;
+        StartScene();
     }
 
     public void StartCurrentLevel()

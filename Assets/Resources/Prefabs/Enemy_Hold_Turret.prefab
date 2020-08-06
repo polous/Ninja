@@ -257,7 +257,7 @@ GameObject:
   - component: {fileID: 770656180228546830}
   - component: {fileID: 770656180228546824}
   m_Layer: 10
-  m_Name: Enemy_Hold
+  m_Name: Enemy_Hold_Turret
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -272,7 +272,7 @@ Transform:
   m_GameObject: {fileID: 770656180228546827}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5, y: 1, z: 1.5}
   m_Children:
   - {fileID: 770656178989722522}
   - {fileID: 939255809236980447}
@@ -307,12 +307,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 0
   shootRange: 15
-  rotateSpeed: 1
+  rotateSpeed: 1.5
   movingTime: 4
-  shootSpreadCoeff: 1.5
+  shootSpreadCoeff: 7
   rocketDamage: 10
-  rocketSpeed: 5
-  reloadingTime: 0.5
+  rocketSpeed: 7
+  reloadingTime: 0.3
   maxHealthPoint: 80
   curHealthPoint: 0
   voidZoneCastRange: 0
@@ -325,7 +325,7 @@ MonoBehaviour:
   AimRing: {fileID: 6190505037957114751}
   main: {fileID: 0}
   MT: 0
-  bodyColor: {r: 0.27450982, g: 0.2509804, b: 0.39215687, a: 1}
+  bodyColor: {r: 0.2924528, g: 0.25247684, b: 0.24113563, a: 1}
   mr: {fileID: 0}
 --- !u!1 &6190505037957114751
 GameObject:

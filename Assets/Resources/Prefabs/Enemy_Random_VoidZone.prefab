@@ -257,7 +257,7 @@ GameObject:
   - component: {fileID: 770656180228546830}
   - component: {fileID: 770656180228546824}
   m_Layer: 10
-  m_Name: Enemy_Hold
+  m_Name: Enemy_Random_VoidZone
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -305,27 +305,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2631890a0dbc72644a0f5b92210c6294, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 0
-  shootRange: 15
-  rotateSpeed: 1
+  moveSpeed: 3
+  shootRange: 0
+  rotateSpeed: 2
   movingTime: 4
-  shootSpreadCoeff: 1.5
-  rocketDamage: 10
-  rocketSpeed: 5
-  reloadingTime: 0.5
+  shootSpreadCoeff: 0
+  rocketDamage: 0
+  rocketSpeed: 0
+  reloadingTime: 0
   maxHealthPoint: 80
   curHealthPoint: 0
-  voidZoneCastRange: 0
-  voidZoneDamage: 0
-  voidZoneRadius: 0
-  voidZoneDuration: 0
-  voidZoneReloadingTime: 0
+  voidZoneCastRange: 7
+  voidZoneDamage: 25
+  voidZoneRadius: 2
+  voidZoneDuration: 1
+  voidZoneReloadingTime: 3
   healthPanel: {fileID: 0}
   healthPanelScript: {fileID: 0}
   AimRing: {fileID: 6190505037957114751}
   main: {fileID: 0}
   MT: 0
-  bodyColor: {r: 0.27450982, g: 0.2509804, b: 0.39215687, a: 1}
+  bodyColor: {r: 0.77008283, g: 0.9056604, b: 0.011961505, a: 1}
   mr: {fileID: 0}
 --- !u!1 &6190505037957114751
 GameObject:

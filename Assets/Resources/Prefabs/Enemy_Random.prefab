@@ -315,6 +315,7 @@ MonoBehaviour:
   reloadingTime: 0.7
   maxHealthPoint: 80
   curHealthPoint: 0
+  voidZoneCastRange: 8
   voidZoneDamage: 25
   voidZoneRadius: 2
   voidZoneDuration: 3

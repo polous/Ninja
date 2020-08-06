@@ -28,6 +28,7 @@ public class Enemy : MonoBehaviour
     public float maxHealthPoint; // максимальный запас здоровья
     [HideInInspector] public float curHealthPoint; // текущий запас здоровья
 
+    public float voidZoneCastRange; // максимальная дистанция кастования войд зоны
     public float voidZoneDamage; // урон от войд зоны
     public float voidZoneRadius; // радиус войд зоны
     public int voidZoneDuration; // продолжительность от начала каста до непосредственно взрыва (в секундах)
@@ -65,6 +66,11 @@ public class Enemy : MonoBehaviour
 
     void Start()
     {
+
+    }
+
+    public void StartScene()
+    {
         MPB = new MaterialPropertyBlock();
         mr = GetComponentInChildren<MeshRenderer>();
         mr.GetPropertyBlock(MPB);
@@ -83,7 +89,7 @@ public class Enemy : MonoBehaviour
     // Получение случайной точки на Navmesh
     void GetRandomPoint(Vector3 center, float maxDistance)
     {
-        while (true)
+        for (int c = 0; c < 50; c++)
         {
             // случайная точка внутри окружности, расположенной в center с радиусом maxDistance
             Vector3 randomPos = new Vector3(Random.Range(center.x - maxDistance, center.x + maxDistance), 0, Random.Range(center.z - maxDistance, center.z + maxDistance));
@@ -104,14 +110,17 @@ public class Enemy : MonoBehaviour
                 if (pathDist >= maxDistance * 2f / 3f) return;
             }
         }
+        path.ClearCorners();
     }
 
 
     void Update()
-    {       
-        healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
+    {
+        if (main == null) return;
 
-        if (!main.readyToGo) return;
+        if (healthPanel != null) healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
+
+        if (!main.readyToGo) return; 
 
         if (main.player != null)
         {
@@ -131,8 +140,8 @@ public class Enemy : MonoBehaviour
                     }
                     else
                     {
-                        GetRandomPoint(transform.position, shootRange * 1.5f);
-                        voidZone.transform.position = path.corners.Last();
+                        GetRandomPoint(transform.position, voidZoneCastRange);
+                        if (path.corners.Length > 1) voidZone.transform.position = path.corners.Last();
                     }
                     voidZone.damage = voidZoneDamage;
                     voidZone.radius = voidZoneRadius;
@@ -237,24 +246,27 @@ public class Enemy : MonoBehaviour
                 {
                     if (!moving && moveSpeed > 0)
                     {
-                        GetRandomPoint(transform.position, shootRange * 1.5f);
+                        GetRandomPoint(transform.position, 8f);
                         i = 1;
 
                         StartCoroutine(Moving(movingTime));
                     }
                     else
                     {
-                        if (i != path.corners.Length)
+                        if (path.corners.Length > 1)
                         {
-                            transform.position = Vector3.MoveTowards(transform.position, path.corners[i], Time.deltaTime * moveSpeed * main.curSlowerCoeff);
-                            targetDir = path.corners[i] - transform.position; targetDir.y = 0;
-                            transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
+                            if (i != path.corners.Length)
+                            {
+                                transform.position = Vector3.MoveTowards(transform.position, path.corners[i], Time.deltaTime * moveSpeed * main.curSlowerCoeff);
+                                targetDir = path.corners[i] - transform.position; targetDir.y = 0;
+                                transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
 
-                            if ((path.corners[i] - transform.position).magnitude <= 0.01f) i++;
-                        }
-                        else
-                        {
-                            moving = false;
+                                if ((path.corners[i] - transform.position).magnitude <= 0.01f) i++;
+                            }
+                            else
+                            {
+                                moving = false;
+                            }
                         }
                     }
                 }
@@ -314,7 +326,7 @@ public class Enemy : MonoBehaviour
         {
             _b = _b - _a;
             if (_b >= 0) return 1;
-            else return - 1;
+            else return -1;
         }
         else if (_a >= 180f && _b <= 180f)
         {

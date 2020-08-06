@@ -27,7 +27,7 @@ public class Player : MonoBehaviour
     [HideInInspector] public HealthPanel healthPanelScript;
     [HideInInspector] public Transform RangeZone;
 
-    public float freeSlowMoTimer;
+    [HideInInspector] public float freeSlowMoTimer;
 
     Transform CamTarget;
     [HideInInspector] public Main main;
@@ -40,9 +40,11 @@ public class Player : MonoBehaviour
     [HideInInspector] public MaterialPropertyBlock MPB;
     [HideInInspector] public MeshRenderer mr;
 
-    public bool inMatrix;
+    NavMeshAgent agent;
 
-    void Start()
+    [HideInInspector] public bool inMatrix;
+
+    public void StartScene()
     {
         inMatrix = false;
         RangeZone.localScale = new Vector3(shootRange, shootRange, shootRange);
@@ -54,8 +56,10 @@ public class Player : MonoBehaviour
         mr.SetPropertyBlock(MPB);
 
         CamTarget = GameObject.Find("CamTarget").transform;
+        agent = GetComponent<NavMeshAgent>();
         // располагаем игрока в его стартовой позиции на сцене
         transform.position = main.playerSpawnPoint.position;
+        transform.rotation = Quaternion.identity;
         s = 0;
         curEnergy = maxEnergy;
         curHealthPoint = maxHealthPoint;
@@ -64,6 +68,7 @@ public class Player : MonoBehaviour
         joy = main.joy;
 
         freeSlowMoTimer = freeSlowMoTime;
+        agent.enabled = true;
     }
 
     // обновление UI
@@ -75,7 +80,9 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
+        if (main == null) return;
+
+        if (healthPanel != null) healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
 
         if (!main.readyToGo) return;
 
@@ -127,6 +134,14 @@ public class Player : MonoBehaviour
             {
                 curEnergy = 0;
                 s = 0;
+                // при достижении нулевой энергии
+                //либо выходить из матрицы полностью (раскомментировать строку), 
+                //либо оставаться в ней (всё замедленно), 
+                //но без движения и восстановления энергии 
+                //(т.е. игрок всё равно будет вынужден отпустить палец от экрана, 
+                //зато у него будет время оценить обстановку)
+                // П.С.: мне нравится второй вариант (строка закомментирована)
+                //inMatrix = false; 
             }
             UIRefresh(curEnergy);
         }
@@ -136,7 +151,7 @@ public class Player : MonoBehaviour
         if (s > 0 && inMatrix)
         {
             transform.position += direction.normalized * s * Time.deltaTime;
-            transform.rotation = Quaternion.LookRotation(direction);
+            if (Quaternion.LookRotation(direction) != Quaternion.identity) transform.rotation = Quaternion.LookRotation(direction);
         }
 
         // определяем близжайщего видимого (не закрытого препятствиями) врага

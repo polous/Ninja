@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class Rocket : MonoBehaviour
 {
-    public int damage; // урон
+    public float damage; // урон
     public float maxRange; // предельная дистанция полета
     public float speed; // скорость полета 
     public Vector3 startPoint; // начальная точка полета    

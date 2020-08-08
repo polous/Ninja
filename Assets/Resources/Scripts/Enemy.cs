@@ -9,7 +9,7 @@ public enum moveType
 {
     Random,
     Follow,
-    Stay
+    Twister
 }
 
 public class Enemy : MonoBehaviour
@@ -19,9 +19,10 @@ public class Enemy : MonoBehaviour
     public float rotateSpeed; // скорость поворота
     public float movingTime; // время в пути (после него идет переопределение пути)
 
+    public int rocketsCountPerShoot; // количество пуль выпускаемое за один выстрел (если > 1 - дробовик)
     public float shootSpreadCoeff; // коэффициент разброса пуль
 
-    public int rocketDamage; // текущий урон от оружия
+    public float rocketDamage; // текущий урон от оружия
     public float rocketSpeed; // скорость полета пули
     public float reloadingTime; // время перезарядки оружия (задержка между соседними атаками в секундах)
 
@@ -31,8 +32,13 @@ public class Enemy : MonoBehaviour
     public float voidZoneCastRange; // максимальная дистанция кастования войд зоны
     public float voidZoneDamage; // урон от войд зоны
     public float voidZoneRadius; // радиус войд зоны
-    public int voidZoneDuration; // продолжительность от начала каста до непосредственно взрыва (в секундах)
+    public float voidZoneDuration; // продолжительность от начала каста до непосредственно взрыва (в секундах)
     public float voidZoneReloadingTime; // время перезарядки войд зоны (задержка между соседними кастами в секундах)
+
+    public float twisterAngle; // угловой сектор, в рамках которого враг-Twister будет вращаться
+    //bool rotating;
+    float curAng, targAng;
+    int rotateDir;
 
     [HideInInspector] public Transform healthPanel;
     [HideInInspector] public HealthPanel healthPanelScript;
@@ -49,9 +55,6 @@ public class Enemy : MonoBehaviour
     Vector3 targetDir;
 
     bool moving;
-    //bool rotating;
-    //float curAng, targAng;
-    //int rotateDir;
     Vector3 fwd, dir;
     float timerForReloading;
     float timerForVoidZoneReloading;
@@ -84,6 +87,12 @@ public class Enemy : MonoBehaviour
         timerForVoidZoneReloading = Random.Range(0, voidZoneReloadingTime); // рандомный таймер для войд зоны (чтобы на старте все враги не начинали одновременный каст)
         timerForReloading = reloadingTime;
         timerForVoidZoneCasting = voidZoneDuration;
+
+        if (rocketsCountPerShoot == 0) rocketsCountPerShoot = 1;
+
+        curAng = 0;
+        targAng = twisterAngle / 2f;
+        rotateDir = 1;
     }
 
     // Получение случайной точки на Navmesh
@@ -120,53 +129,52 @@ public class Enemy : MonoBehaviour
 
         if (healthPanel != null) healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
 
-        if (!main.readyToGo) return; 
+        if (!main.readyToGo) return;
 
-        if (main.player != null)
+        if (MT == moveType.Twister)
         {
-            // кастуем войд зону
-            if (voidZoneReloadingTime > 0) // исключаем из расчета тех врагов, кто вообще не кастер войд зон
+            if (main.player != null)
             {
-                timerForVoidZoneReloading += Time.deltaTime * main.curSlowerCoeff;
-                timerForVoidZoneCasting += Time.deltaTime * main.curSlowerCoeff;
-
-                if (timerForVoidZoneReloading >= voidZoneReloadingTime)
+                // кастуем войд зону
+                if (voidZoneReloadingTime > 0) // исключаем из расчета тех врагов, кто вообще не кастер войд зон
                 {
-                    VoidZone voidZone = main.voidZonesPool.GetChild(0).GetComponent<VoidZone>();
-                    voidZone.transform.parent = null;
-                    if ((main.player.transform.position - transform.position).magnitude <= shootRange)
+                    VoidZoneCasting();
+
+                    // пока враг кастует войд зону, он больше ничем не занимается
+                    if (timerForVoidZoneCasting < voidZoneDuration) return;
+                }
+
+                float step = rotateSpeed * Time.deltaTime * main.curSlowerCoeff * 33;
+                if (curAng + step >= targAng)
+                {
+                    if (rotateDir == 1) rotateDir = -1;
+                    else rotateDir = 1;
+                    curAng = 0;
+                    targAng = twisterAngle;
+                }
+                else
+                {
+                    curAng += step;
+
+                    if (rotateDir == 1)
                     {
-                        voidZone.transform.position = main.player.transform.position;
+                        transform.Rotate(Vector3.up, step);
                     }
                     else
                     {
-                        GetRandomPoint(transform.position, voidZoneCastRange);
-                        if (path.corners.Length > 1) voidZone.transform.position = path.corners.Last();
+                        transform.Rotate(-Vector3.up, step);
                     }
-                    voidZone.damage = voidZoneDamage;
-                    voidZone.radius = voidZoneRadius;
-                    voidZone.transform.localScale = Vector3.one * voidZoneRadius;
-                    voidZone.duration = voidZoneDuration;
-                    voidZone.isCasting = true;
-                    voidZone.Custer = this;
-
-                    Transform vzce = main.voidZoneCastEffectsPool.GetChild(0);
-                    vzce.transform.parent = null;
-                    vzce.transform.position = transform.position;
-                    voidZone.castEffect = vzce;
-
-                    timerForVoidZoneReloading = 0;
-                    timerForVoidZoneCasting = 0;
                 }
 
-                // пока враг кастует войд зону, он больше ничем не занимается
-                if (timerForVoidZoneCasting < voidZoneDuration) return;
-            }
+                timerForReloading += Time.deltaTime * main.curSlowerCoeff;
+                if (timerForReloading >= reloadingTime)
+                {
+                    RocketShooting(2);
 
-            fwd = transform.forward; fwd.y = 0;
-            dir = main.player.transform.position - transform.position; dir.y = 0;
-            if ((main.player.transform.position - transform.position).magnitude <= shootRange && !Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.2f, main.player.transform.position - transform.position, out RChit, (main.player.transform.position - transform.position).magnitude, 1 << 9))
-            {
+                    timerForReloading = 0;
+                }
+
+
                 #region
                 //if (!rotating)
                 //{
@@ -209,57 +217,89 @@ public class Enemy : MonoBehaviour
                 //    }
                 //}
                 #endregion
-
-                // поворачиваемся а потом стреляем/бьем игрока
-                timerForReloading += Time.deltaTime * main.curSlowerCoeff;
-                if (Vector3.Angle(fwd, dir) <= 1f)
+            }
+        }
+        else
+        {
+            if (main.player != null)
+            {
+                // кастуем войд зону
+                if (voidZoneReloadingTime > 0) // исключаем из расчета тех врагов, кто вообще не кастер войд зон
                 {
-                    if (timerForReloading >= reloadingTime)
+                    VoidZoneCasting();
+
+                    // пока враг кастует войд зону, он больше ничем не занимается
+                    if (timerForVoidZoneCasting < voidZoneDuration) return;
+                }
+
+                fwd = transform.forward; fwd.y = 0;
+                dir = main.player.transform.position - transform.position; dir.y = 0;
+                if ((main.player.transform.position - transform.position).magnitude <= shootRange && !Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.2f, main.player.transform.position - transform.position, out RChit, (main.player.transform.position - transform.position).magnitude, 1 << 9))
+                {
+                    // поворачиваемся а потом стреляем/бьем игрока
+                    timerForReloading += Time.deltaTime * main.curSlowerCoeff;
+                    if (Vector3.Angle(fwd, dir) <= 1f)
                     {
-                        Rocket rocket = main.rocketsPool.GetChild(0).GetComponent<Rocket>();
-                        rocket.transform.parent = null;
-                        rocket.transform.position = transform.position + 0.5f * Vector3.up;
-                        rocket.startPoint = rocket.transform.position;
-                        rocket.maxRange = shootRange;
-                        rocket.MyShooterTag = tag;
-                        rocket.flying = true;
-                        rocket.speed = rocketSpeed;
-                        rocket.damage = rocketDamage;
+                        if (timerForReloading >= reloadingTime)
+                        {
+                            RocketShooting(1);
 
-                        Vector3 randomVector = new Vector3(Random.Range(-shootSpreadCoeff, +shootSpreadCoeff), 0, Random.Range(-shootSpreadCoeff, +shootSpreadCoeff));
-                        Vector3 lastPoint = transform.position + (main.player.transform.position - transform.position).normalized * shootRange + randomVector;
-                        Vector3 direction = lastPoint - transform.position;
-
-                        rocket.direction = direction;
-
-                        timerForReloading = 0;
+                            timerForReloading = 0;
+                        }
+                    }
+                    else
+                    {
+                        transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, dir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
                     }
                 }
                 else
                 {
-                    transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, dir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
-                }
-            }
-            else
-            {
-                if (MT == moveType.Random)
-                {
-                    if (!moving && moveSpeed > 0)
+                    if (MT == moveType.Random)
                     {
-                        GetRandomPoint(transform.position, 8f);
-                        i = 1;
+                        if (!moving && moveSpeed > 0)
+                        {
+                            GetRandomPoint(transform.position, 8f);
+                            i = 1;
 
-                        StartCoroutine(Moving(movingTime));
+                            StartCoroutine(Moving(movingTime));
+                        }
+                        else
+                        {
+                            if (path.corners.Length > 1)
+                            {
+                                if (i != path.corners.Length)
+                                {
+                                    transform.position = Vector3.MoveTowards(transform.position, path.corners[i], Time.deltaTime * moveSpeed * main.curSlowerCoeff);
+                                    targetDir = path.corners[i] - transform.position; targetDir.y = 0;
+                                    transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
+
+                                    if ((path.corners[i] - transform.position).magnitude <= 0.01f) i++;
+                                }
+                                else
+                                {
+                                    moving = false;
+                                }
+                            }
+                        }
                     }
-                    else
+
+                    else if (MT == moveType.Follow)
                     {
-                        if (path.corners.Length > 1)
+                        if (!moving && moveSpeed > 0)
+                        {
+                            NavMesh.CalculatePath(transform.position, main.player.transform.position, NavMesh.AllAreas, path);
+                            i = 1;
+
+                            StartCoroutine(Moving(movingTime));
+                        }
+                        else
                         {
                             if (i != path.corners.Length)
                             {
                                 transform.position = Vector3.MoveTowards(transform.position, path.corners[i], Time.deltaTime * moveSpeed * main.curSlowerCoeff);
                                 targetDir = path.corners[i] - transform.position; targetDir.y = 0;
                                 transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
+                                //if (transform.position != path.corners[i]) transform.rotation = Quaternion.LookRotation(targetDir);
 
                                 if ((path.corners[i] - transform.position).magnitude <= 0.01f) i++;
                             }
@@ -270,34 +310,66 @@ public class Enemy : MonoBehaviour
                         }
                     }
                 }
-
-                else if (MT == moveType.Follow)
-                {
-                    if (!moving && moveSpeed > 0)
-                    {
-                        NavMesh.CalculatePath(transform.position, main.player.transform.position, NavMesh.AllAreas, path);
-                        i = 1;
-
-                        StartCoroutine(Moving(movingTime));
-                    }
-                    else
-                    {
-                        if (i != path.corners.Length)
-                        {
-                            transform.position = Vector3.MoveTowards(transform.position, path.corners[i], Time.deltaTime * moveSpeed * main.curSlowerCoeff);
-                            targetDir = path.corners[i] - transform.position; targetDir.y = 0;
-                            transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, targetDir, rotateSpeed * Time.deltaTime * main.curSlowerCoeff, 0));
-                            //if (transform.position != path.corners[i]) transform.rotation = Quaternion.LookRotation(targetDir);
-
-                            if ((path.corners[i] - transform.position).magnitude <= 0.01f) i++;
-                        }
-                        else
-                        {
-                            moving = false;
-                        }
-                    }
-                }
             }
+        }        
+    }
+
+    private void RocketShooting(int type) // type = 1 - стрельба в направлении игрока, 2 - стрельба в направлении взгляда
+    {
+        for (int i = 0; i < rocketsCountPerShoot; i++)
+        {
+            Rocket rocket = main.rocketsPool.GetChild(0).GetComponent<Rocket>();
+            rocket.transform.parent = null;
+            rocket.transform.position = transform.position + 0.5f * Vector3.up;
+            rocket.startPoint = rocket.transform.position;
+            rocket.maxRange = shootRange;
+            rocket.MyShooterTag = tag;
+            rocket.flying = true;
+            rocket.speed = rocketSpeed;
+            rocket.damage = rocketDamage;
+
+            Vector3 randomVector = new Vector3(Random.Range(-shootSpreadCoeff, +shootSpreadCoeff), 0, Random.Range(-shootSpreadCoeff, +shootSpreadCoeff));
+            Vector3 lastPoint = Vector3.zero;
+            if(type == 1) lastPoint = transform.position + (main.player.transform.position - transform.position).normalized * shootRange + randomVector;
+            if(type == 2) lastPoint = transform.position + transform.forward * shootRange + randomVector;
+            Vector3 direction = lastPoint - transform.position;
+
+            rocket.direction = direction;
+        }
+    }
+
+    private void VoidZoneCasting()
+    {
+        timerForVoidZoneReloading += Time.deltaTime * main.curSlowerCoeff;
+        timerForVoidZoneCasting += Time.deltaTime * main.curSlowerCoeff;
+
+        if (timerForVoidZoneReloading >= voidZoneReloadingTime)
+        {
+            VoidZone voidZone = main.voidZonesPool.GetChild(0).GetComponent<VoidZone>();
+            voidZone.transform.parent = null;
+            if ((main.player.transform.position - transform.position).magnitude <= shootRange)
+            {
+                voidZone.transform.position = main.player.transform.position;
+            }
+            else
+            {
+                GetRandomPoint(transform.position, voidZoneCastRange);
+                if (path.corners.Length > 1) voidZone.transform.position = path.corners.Last();
+            }
+            voidZone.damage = voidZoneDamage;
+            voidZone.radius = voidZoneRadius;
+            voidZone.transform.localScale = Vector3.one * voidZoneRadius;
+            voidZone.duration = voidZoneDuration;
+            voidZone.isCasting = true;
+            voidZone.Custer = this;
+
+            Transform vzce = main.voidZoneCastEffectsPool.GetChild(0);
+            vzce.transform.parent = null;
+            vzce.transform.position = transform.position;
+            voidZone.castEffect = vzce;
+
+            timerForVoidZoneReloading = 0;
+            timerForVoidZoneCasting = 0;
         }
     }
 

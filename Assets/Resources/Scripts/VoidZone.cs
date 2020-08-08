@@ -10,7 +10,7 @@ public class VoidZone : MonoBehaviour
     public SpriteRenderer Border;
     public float damage;
     public float radius;
-    public int duration; // продолжительность от начала каста до непосредственно взрыва (в секундах)
+    public float duration; // продолжительность от начала каста до непосредственно взрыва (в секундах)
     public GameObject explosion;
     public bool isCasting;
     public Enemy Custer; // враг, который кастует данную войд зону

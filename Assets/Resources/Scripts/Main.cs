@@ -38,6 +38,9 @@ public class Main : MonoBehaviour
 
     public List<GameObject> dontDestroyOnLoadGameObjects;
 
+    public float storedPlayerHealth;
+    public float playerHealthRecoveryCount; // доля (в %) хп, на которое восстановится здоровь игрока на следующем уровне (но не больше максимального значения)
+
 
     void Awake()
     {
@@ -116,6 +119,17 @@ public class Main : MonoBehaviour
             e.healthPanelScript = hPanele.GetComponent<HealthPanel>();
             e.StartScene();
         }
+
+        int curSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        if (curSceneIndex == 0)
+        {
+            storedPlayerHealth = player.maxHealthPoint;
+        }
+
+        player.curHealthPoint = storedPlayerHealth + playerHealthRecoveryCount * player.maxHealthPoint / 100f;
+        if (player.curHealthPoint > player.maxHealthPoint) player.curHealthPoint = player.maxHealthPoint;
+
+        player.healthPanelScript.healthSlider.fillAmount = player.curHealthPoint / player.maxHealthPoint;
     }
 
 
@@ -290,6 +304,8 @@ public class Main : MonoBehaviour
 
     IEnumerator loadNextLevel()
     {
+        storedPlayerHealth = player.curHealthPoint;
+
         int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
         if (SceneManager.sceneCountInBuildSettings == nextSceneIndex)
         {

@@ -309,6 +309,7 @@ MonoBehaviour:
   shootRange: 5
   rotateSpeed: 5
   movingTime: 5
+  rocketsCountPerShoot: 1
   shootSpreadCoeff: 0.5
   rocketDamage: 15
   rocketSpeed: 4

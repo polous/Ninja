@@ -9,7 +9,7 @@ public class Player : MonoBehaviour
     public float moveSpeed; // базовая скорость перемещения игрока
     float s; // текущая скорость игрока
     public float shootRange; // дистанция стрельбы
-    public int rocketDamage; // текущий урон от оружия
+    public float rocketDamage; // текущий урон от оружия
     public float rocketSpeed; // скорость полета пули
     public float reloadingTime; // время перезарядки оружия (задержка между соседними атаками)
     bool reloading;
@@ -22,7 +22,7 @@ public class Player : MonoBehaviour
     [HideInInspector] public float curEnergy; // текущий запас энергии
     float sPrev, sCur;
     public float maxHealthPoint; // максимальный запас здоровья
-    [HideInInspector] public float curHealthPoint; // текущий запас здоровья
+    public float curHealthPoint; // текущий запас здоровья
     [HideInInspector] public Transform healthPanel;
     [HideInInspector] public HealthPanel healthPanelScript;
     [HideInInspector] public Transform RangeZone;

@@ -227,12 +227,14 @@ MonoBehaviour:
   shootRange: 1
   rotateSpeed: 2
   movingTime: 0.05
+  rocketsCountPerShoot: 1
   shootSpreadCoeff: 0
   rocketDamage: 20
   rocketSpeed: 50
   reloadingTime: 1
   maxHealthPoint: 100
   curHealthPoint: 0
+  voidZoneCastRange: 0
   voidZoneDamage: 0
   voidZoneRadius: 0
   voidZoneDuration: 0

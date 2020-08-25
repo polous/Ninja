@@ -162,19 +162,22 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             main.curSlowerCoeff = 1;
             if (main.player.curEnergy >= main.player.matrixEnergyDrop)
             {
-                main.player.curEnergy -= main.player.matrixEnergyDrop;
-                main.player.moveDirection = direction.normalized;
+                if (direction.magnitude != 0)
+                {
+                    main.player.curEnergy -= main.player.matrixEnergyDrop;
+                    main.player.moveDirection = direction.normalized;
 
-                main.player.transform.rotation = Quaternion.LookRotation(direction.normalized);
+                    main.player.transform.rotation = Quaternion.LookRotation(direction.normalized);
 
-                //main.player.rb.AddForce(direction.normalized * main.player.moveSpeed, ForceMode.VelocityChange);
-                //main.player.rb.velocity = direction.normalized * main.player.moveSpeed;
+                    //main.player.rb.AddForce(direction.normalized * main.player.moveSpeed, ForceMode.VelocityChange);
+                    //main.player.rb.velocity = direction.normalized * main.player.moveSpeed;
 
-                main.player.timerForRage = main.player.rageTime;
+                    main.player.timerForRage = main.player.rageTime;
 
-                main.player.mr.GetPropertyBlock(main.player.MPB);
-                main.player.MPB.SetColor("_Color", Color.red);
-                main.player.mr.SetPropertyBlock(main.player.MPB);
+                    main.player.mr.GetPropertyBlock(main.player.MPB);
+                    main.player.MPB.SetColor("_Color", Color.red);
+                    main.player.mr.SetPropertyBlock(main.player.MPB);
+                }
             }
         }
         main.ToneMap.enabled = false;

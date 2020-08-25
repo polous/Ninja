@@ -141,10 +141,10 @@ public class Player : MonoBehaviour
                 transform.position += moveDirection * moveSpeed * Time.deltaTime * main.curSlowerCoeff;
             }
 
-            if (Physics.SphereCast(coll.bounds.center, 0.4f, moveDirection, out RChit, 1, 1 << 9))
-            {
-                normal = RChit.normal;
-            }
+            //if (Physics.SphereCast(coll.bounds.center, 0.4f, moveDirection, out RChit, 1, 1 << 9))
+            //{
+            //    normal = RChit.normal;
+            //}
         }
 
         if (curEnergy < maxEnergy)
@@ -161,17 +161,42 @@ public class Player : MonoBehaviour
         CamTarget.position = new Vector3(CamTarget.position.x, CamTarget.position.y, transform.position.z);
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.tag == "Wall")
-        {
-            //Debug.DrawRay(RChit.point, -moveDirection, Color.red, 20);
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    if (other.tag == "Wall")
+    //    {
+    //        Debug.DrawRay(RChit.point, -moveDirection, Color.red, 2);
 
-            moveDirection = Vector3.Reflect(moveDirection, normal).normalized;
+    //        moveDirection = Vector3.Reflect(moveDirection, normal).normalized;
+
+    //        transform.rotation = Quaternion.LookRotation(moveDirection);
+
+    //        Debug.DrawRay(RChit.point, moveDirection, Color.red, 2);
+    //    }
+    //}
+
+    private void OnCollisionEnter(Collision other)
+    {
+        if (other.collider.tag == "Wall")
+        {
+            Debug.DrawRay(other.GetContact(0).point, -moveDirection, Color.red, 2);
+
+            moveDirection = Vector3.Reflect(moveDirection, other.GetContact(0).normal).normalized;
 
             transform.rotation = Quaternion.LookRotation(moveDirection);
 
-            //Debug.DrawRay(RChit.point, moveDirection, Color.red, 20);
+            Debug.DrawRay(other.GetContact(0).point, moveDirection, Color.red, 2);
         }
+
+        //if (other.collider.tag == "Enemy")
+        //{
+        //    Debug.DrawRay(other.GetContact(0).point, -moveDirection, Color.red, 2);
+
+        //    moveDirection = Vector3.Reflect(moveDirection, other.GetContact(0).normal).normalized;
+
+        //    transform.rotation = Quaternion.LookRotation(moveDirection);
+
+        //    Debug.DrawRay(other.GetContact(0).point, moveDirection, Color.red, 2);
+        //}
     }
 }

@@ -231,7 +231,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 0.1
   shootRange: 0
-  movingTime: 0.5
+  movingTime: 10
   rocketsCountPerShoot: 1
   rocketSpreadCoeff: 0
   rocketDamage: 0
@@ -251,7 +251,7 @@ MonoBehaviour:
   twistSpeed: 0
   isArmored: 1
   main: {fileID: 0}
-  MT: 0
+  MT: 1
   bodyColor: {r: 0.9056604, g: 0.850431, b: 0, a: 1}
   mr: {fileID: 0}
   coll: {fileID: 0}
@@ -285,5 +285,5 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 1
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 126
   m_CollisionDetection: 0

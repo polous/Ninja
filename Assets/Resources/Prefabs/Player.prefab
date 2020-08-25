@@ -91,8 +91,8 @@ GameObject:
   m_Component:
   - component: {fileID: 7864841371002786724}
   - component: {fileID: 7864841371002786727}
-  - component: {fileID: 5115309266217327423}
   - component: {fileID: 8717373923436670658}
+  - component: {fileID: -4277219035793162507}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -142,25 +142,12 @@ MonoBehaviour:
   healthPanel: {fileID: 0}
   healthPanelScript: {fileID: 0}
   main: {fileID: 0}
-  coll: {fileID: 5115309266217327423}
+  coll: {fileID: 0}
   bodyColor: {r: 0.3690281, g: 0.6698113, b: 0.43843967, a: 1}
   mr: {fileID: 0}
   inMatrix: 0
   startMoving: 0
   moveDirection: {x: 0, y: 0, z: 0}
---- !u!135 &5115309266217327423
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7864841371002786744}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.4
-  m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!54 &8717373923436670658
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -173,10 +160,23 @@ Rigidbody:
   m_Drag: 0
   m_AngularDrag: 0
   m_UseGravity: 0
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 126
   m_CollisionDetection: 0
+--- !u!135 &-4277219035793162507
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7864841371002786744}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.4
+  m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!1 &7864841371738745654
 GameObject:
   m_ObjectHideFlags: 0

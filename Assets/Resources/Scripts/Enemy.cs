@@ -72,6 +72,7 @@ public class Enemy : MonoBehaviour
     [HideInInspector] public MeshRenderer mr;
     [HideInInspector] public Collider coll;
     [HideInInspector] public Animator anim;
+    [HideInInspector] public Rigidbody rb;
 
     public Color rocketColor;
     public float rocketSize;
@@ -86,6 +87,7 @@ public class Enemy : MonoBehaviour
         mr.SetPropertyBlock(MPB);
         coll = GetComponent<Collider>();
         anim = GetComponentInChildren<Animator>();
+        rb = GetComponent<Rigidbody>();
 
         AnimatorStateInfo state = anim.GetCurrentAnimatorStateInfo(0);
         anim.Play(state.fullPathHash, -1, Random.Range(0f, 1f));
@@ -103,6 +105,12 @@ public class Enemy : MonoBehaviour
         curAng = 0;
         targAng = twisterAngle / 2f;
         rotateDir = 1;
+
+        if (isArmored)
+        {
+            coll.isTrigger = false;
+            rb.isKinematic = false;
+        }
     }
 
     // Получение случайной точки на Navmesh
@@ -407,18 +415,18 @@ public class Enemy : MonoBehaviour
             }
             else
             {
-                if (isArmored)
-                {
-                    Vector3 normal = Vector3.zero;
-                    Vector3 dir = coll.bounds.center - p.coll.bounds.center;
-                    if (Physics.Raycast(p.coll.bounds.center, dir.normalized, out RChit, dir.magnitude + 0.1f, 1 << 10))
-                    {
-                        normal = RChit.normal;
-                    }
+                //if (isArmored)
+                //{
+                //    Vector3 normal = Vector3.zero;
+                //    Vector3 dir = coll.bounds.center - p.coll.bounds.center;
+                //    if (Physics.Raycast(p.coll.bounds.center, dir.normalized, out RChit, dir.magnitude + 0.1f, 1 << 10))
+                //    {
+                //        normal = RChit.normal;
+                //    }
 
-                    p.moveDirection = Vector3.Reflect(p.moveDirection, normal).normalized;
-                    p.transform.rotation = Quaternion.LookRotation(p.moveDirection);
-                }
+                //    p.moveDirection = Vector3.Reflect(p.moveDirection, normal).normalized;
+                //    p.transform.rotation = Quaternion.LookRotation(p.moveDirection);
+                //}
 
                 if (collDamage > 0 && p.timerForRage <= 0)
                 {
@@ -436,5 +444,47 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    private void OnCollisionEnter(Collision other)
+    {
+        if (other.collider.tag == "Player")
+        {
+            Player p = main.player;
+
+            if (collHeal != 0 && p.curHealthPoint < p.maxHealthPoint)
+            {
+                p.curHealthPoint += collHeal;
+                if (p.curHealthPoint > p.maxHealthPoint) p.curHealthPoint = p.maxHealthPoint;
+                p.healthPanelScript.HealFunction(p.curHealthPoint / p.maxHealthPoint, collHeal);
+            }
+
+            main.BodyHitReaction(mr, MPB, bodyColor);
+            if (p.timerForRage > 0) curHealthPoint -= p.rageCollDamage;
+            else curHealthPoint -= p.collDamage;
+            //e.healthPanelScript.HitFunction(e.curHealthPoint / e.maxHealthPoint, damage);
+
+            if (curHealthPoint <= 0)
+            {
+                main.EnemyDie(this);
+            }
+            else
+            {
+                p.moveDirection = Vector3.Reflect(p.moveDirection, other.GetContact(0).normal).normalized;
+                p.transform.rotation = Quaternion.LookRotation(p.moveDirection);
+
+                if (collDamage > 0 && p.timerForRage <= 0)
+                {
+                    main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);
+
+                    p.curHealthPoint -= collDamage;
+                    p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, collDamage);
+
+                    if (p.curHealthPoint <= 0)
+                    {
+                        main.PlayerDie(p);
+                    }
+                }
+            }
+        }
+    }
 
 }

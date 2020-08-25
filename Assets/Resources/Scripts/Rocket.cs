@@ -18,6 +18,18 @@ public class Rocket : MonoBehaviour
     public Rigidbody rb;
     public Main main;
 
+    public MeshRenderer mr;
+
+
+    public void RocketParamsChanger(MaterialPropertyBlock MPB, Color bodyColor, float bodySize)
+    {
+        mr.GetPropertyBlock(MPB);
+        MPB.SetColor("_Color", bodyColor);
+        mr.SetPropertyBlock(MPB);
+
+        mr.transform.localScale = Vector3.one * bodySize;
+    }
+
     void Update()
     {
         if (flying)
@@ -38,13 +50,13 @@ public class Rocket : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // если прожектайл столкнулся с препятствием - возвращаем в пул
-        if (other.gameObject.layer == 9)
+        if (other.tag == "Wall")
         {
             transform.SetParent(main.rocketsPool);
             flying = false;
         }
         // если прожектайл столкнулся с НПС - наносим урон - возвращаем в пул
-        else if (other.gameObject.layer == 10)
+        else 
         {
             if (other.tag != MyShooterTag) // исключаем самопоражение и фрэндли файр
             {
@@ -54,7 +66,7 @@ public class Rocket : MonoBehaviour
                     main.BodyHitReaction(e.mr, e.MPB, e.bodyColor);
 
                     e.curHealthPoint -= damage;
-                    e.healthPanelScript.HitFunction(e.curHealthPoint / e.maxHealthPoint, damage);
+                    //e.healthPanelScript.HitFunction(e.curHealthPoint / e.maxHealthPoint, damage);
 
                     if (e.curHealthPoint <= 0)
                     {

@@ -41,6 +41,8 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     private Vector2 input = Vector2.zero;
 
+    private Vector3 direction;
+
     protected virtual void Start()
     {
         HandleRange = handleRange;
@@ -61,6 +63,12 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     public virtual void OnPointerDown(PointerEventData eventData)
     {
         OnDrag(eventData);
+
+        //// по тапу начнем игру
+        //if (!main.readyToGo)
+        //{
+        //    main.readyToGo = true;
+        //}
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -75,6 +83,19 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         FormatInput();
         HandleInput(input.magnitude, input.normalized, radius, cam);
         handle.anchoredPosition = input * radius * handleRange;
+
+        direction = Vector3.forward * Vertical + Vector3.right * Horizontal;
+
+        if (main.player.curEnergy >= main.player.matrixEnergyDrop)
+        {
+            if (main.player.inMatrix == false)
+            {
+                main.player.inMatrix = true;
+                main.ToneMap.enabled = true;
+                main.curSlowerCoeff = main.matrixCoeff;
+                if (!background.gameObject.activeSelf) background.gameObject.SetActive(true);
+            }
+        }
     }
 
     protected virtual void HandleInput(float magnitude, Vector2 normalised, Vector2 radius, Camera cam)
@@ -135,7 +156,27 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         input = Vector2.zero;
         handle.anchoredPosition = Vector2.zero;
 
-        if (main.player != null) main.player.inMatrix = false;
+        if (main.player != null)
+        {
+            main.player.inMatrix = false;
+            main.curSlowerCoeff = 1;
+            if (main.player.curEnergy >= main.player.matrixEnergyDrop)
+            {
+                main.player.curEnergy -= main.player.matrixEnergyDrop;
+                main.player.moveDirection = direction.normalized;
+
+                main.player.transform.rotation = Quaternion.LookRotation(direction.normalized);
+
+                //main.player.rb.AddForce(direction.normalized * main.player.moveSpeed, ForceMode.VelocityChange);
+                //main.player.rb.velocity = direction.normalized * main.player.moveSpeed;
+
+                main.player.timerForRage = main.player.rageTime;
+
+                main.player.mr.GetPropertyBlock(main.player.MPB);
+                main.player.MPB.SetColor("_Color", Color.red);
+                main.player.mr.SetPropertyBlock(main.player.MPB);
+            }
+        }
         main.ToneMap.enabled = false;
 
         // по тапу отменим стартовый таймер

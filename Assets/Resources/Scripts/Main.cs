@@ -89,7 +89,7 @@ public class Main : MonoBehaviour
         globalTimer = 0;
         readyToGo = false;
         joy.main = this;
-        StartButton.SetActive(true);
+        //StartButton.SetActive(true);
         RepeatButton.SetActive(false);
         NextButton.SetActive(false);
 
@@ -115,8 +115,8 @@ public class Main : MonoBehaviour
             Transform hPanele = Instantiate(Resources.Load<GameObject>("Prefabs/healthPanel")).transform;
             hPanele.SetParent(healthPanelsPool);
             hPanele.localScale = new Vector3(1, 1, 1);
-            e.healthPanel = hPanele;
-            e.healthPanelScript = hPanele.GetComponent<HealthPanel>();
+            //e.healthPanel = hPanele;
+            //e.healthPanelScript = hPanele.GetComponent<HealthPanel>();
             e.StartScene();
         }
 
@@ -155,6 +155,23 @@ public class Main : MonoBehaviour
         }
     }
 
+    // меняем цвет тушки
+    IEnumerator ChangeBodyColorInRage(MeshRenderer mr, MaterialPropertyBlock MPB, Color colorNew, float duration, Color colorOld)
+    {
+        mr.GetPropertyBlock(MPB);
+        MPB.SetColor("_Color", colorNew);
+        mr.SetPropertyBlock(MPB);
+
+        yield return new WaitForSeconds(duration);
+
+        if (mr != null)
+        {
+            mr.GetPropertyBlock(MPB);
+            MPB.SetColor("_Color", colorOld);
+            mr.SetPropertyBlock(MPB);
+        }
+    }
+
     public void EnemyDie(Enemy e)
     {
         StartCoroutine(EnemyDeath(e));
@@ -163,11 +180,11 @@ public class Main : MonoBehaviour
     // убиваем врага
     IEnumerator EnemyDeath(Enemy e)
     {
-        e.healthPanel.GetComponent<Image>().enabled = false;
+        //e.healthPanel.GetComponent<Image>().enabled = false;
         e.enabled = false;
         foreach (MeshRenderer mr in e.GetComponentsInChildren<MeshRenderer>()) mr.enabled = false;
         e.GetComponent<Collider>().enabled = false;
-        e.AimRing.SetActive(false);
+        //e.AimRing.SetActive(false);
 
         Transform deathEffect = deathEffectsPool.GetChild(0);
         deathEffect.SetParent(null);
@@ -179,7 +196,7 @@ public class Main : MonoBehaviour
 
         deathEffect.SetParent(deathEffectsPool);
         Destroy(e.gameObject);
-        Destroy(e.healthPanel.gameObject);
+        //Destroy(e.healthPanel.gameObject);
 
         StartCoroutine(EndOfBattle());
     }
@@ -273,10 +290,10 @@ public class Main : MonoBehaviour
         }
         else
         {
-            foreach (Enemy e in enemies)
-            {
-                Destroy(e.healthPanel.gameObject);
-            }
+            //foreach (Enemy e in enemies)
+            //{
+            //    Destroy(e.healthPanel.gameObject);
+            //}
 
             foreach (GameObject go in dontDestroyOnLoadGameObjects)
             {

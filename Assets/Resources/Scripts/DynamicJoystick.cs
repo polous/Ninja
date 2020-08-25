@@ -20,8 +20,14 @@ public class DynamicJoystick : Joystick
     {
         background.anchoredPosition = ScreenPointToAnchoredPosition(eventData.position);
         //background.anchoredPosition = eventData.position;
+
+        // по тапу начнем игру
+        if (!main.readyToGo)
+        {
+            main.readyToGo = true;
+        }
+        //if (main.readyToGo && main.player.inMatrix) background.gameObject.SetActive(true);
         
-        if(main.readyToGo) background.gameObject.SetActive(true);
         base.OnPointerDown(eventData);
     }
 
@@ -31,13 +37,13 @@ public class DynamicJoystick : Joystick
         base.OnPointerUp(eventData);
     }
 
-    protected override void HandleInput(float magnitude, Vector2 normalised, Vector2 radius, Camera cam)
-    {
-        if (magnitude > moveThreshold)
-        {
-            Vector2 difference = normalised * (magnitude - moveThreshold) * radius;
-            background.anchoredPosition += difference;
-        }
-        base.HandleInput(magnitude, normalised, radius, cam);
-    }
+    //protected override void HandleInput(float magnitude, Vector2 normalised, Vector2 radius, Camera cam)
+    //{
+    //    if (magnitude > moveThreshold)
+    //    {
+    //        Vector2 difference = normalised * (magnitude - moveThreshold) * radius;
+    //        background.anchoredPosition += difference;
+    //    }
+    //    base.HandleInput(magnitude, normalised, radius, cam);
+    //}
 }

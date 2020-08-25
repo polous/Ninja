@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.EventSystems;
 
 public class Player : MonoBehaviour
 {
     public float moveSpeed; // базовая скорость перемещения игрока
+    public float rageSpeed; // скорость перемещения игрока во время ярости
+    public float rageTime;
+    [HideInInspector] public float timerForRage;
     float s; // текущая скорость игрока
-    public float shootRange; // дистанция стрельбы
-    public float rocketDamage; // текущий урон от оружия
-    public float rocketSpeed; // скорость полета пули
-    public float reloadingTime; // время перезарядки оружия (задержка между соседними атаками)
-    bool reloading;
-    public float rotateSpeed; // скорость поворота
+
+    public float collDamage;
+    public float rageCollDamage;
+
     public float maxEnergy; // максимальный запас энергии
     public float matrixEnergyDrop; // расход энергии на вход в матрицу
-    public float energyGrowPerSec; // расход энергии в секунду в матрице
-    public float freeSlowMoTime; // время перемещения без затрат энергии
     public float energyRecoveryPerSec; // восстановление энергии в секунду вне матрицы
     [HideInInspector] public float curEnergy; // текущий запас энергии
     float sPrev, sCur;
@@ -25,29 +25,31 @@ public class Player : MonoBehaviour
     public float curHealthPoint; // текущий запас здоровья
     [HideInInspector] public Transform healthPanel;
     [HideInInspector] public HealthPanel healthPanelScript;
-    [HideInInspector] public Transform RangeZone;
-
-    [HideInInspector] public float freeSlowMoTimer;
 
     Transform CamTarget;
     [HideInInspector] public Main main;
     Joystick joy;
     RaycastHit RChit;
-
-    Enemy myAim;
+    [HideInInspector] public Collider coll;
 
     public Color bodyColor;
     [HideInInspector] public MaterialPropertyBlock MPB;
     [HideInInspector] public MeshRenderer mr;
 
-    NavMeshAgent agent;
+    public bool inMatrix;
 
-    [HideInInspector] public bool inMatrix;
+    public bool startMoving;
+    public Vector3 moveDirection;
+
+
+    Vector3 normal = Vector3.zero;
+
+
 
     public void StartScene()
     {
         inMatrix = false;
-        RangeZone.localScale = new Vector3(shootRange, shootRange, shootRange);
+        startMoving = false;
 
         MPB = new MaterialPropertyBlock();
         mr = GetComponentInChildren<MeshRenderer>();
@@ -55,8 +57,9 @@ public class Player : MonoBehaviour
         MPB.SetColor("_Color", bodyColor);
         mr.SetPropertyBlock(MPB);
 
+        coll = GetComponent<Collider>();
+
         CamTarget = GameObject.Find("CamTarget").transform;
-        agent = GetComponent<NavMeshAgent>();
         // располагаем игрока в его стартовой позиции на сцене
         transform.position = main.playerSpawnPoint.position;
         transform.rotation = Quaternion.identity;
@@ -66,13 +69,10 @@ public class Player : MonoBehaviour
         UIRefresh(curEnergy);
 
         joy = main.joy;
-
-        freeSlowMoTimer = freeSlowMoTime;
-        agent.enabled = true;
     }
 
     // обновление UI
-    void UIRefresh(float curEnergy)
+    public void UIRefresh(float curEnergy)
     {
         main.EnergySlider.fillAmount = curEnergy / maxEnergy;
         main.EnergyCount.text = curEnergy.ToString("F0");
@@ -86,7 +86,6 @@ public class Player : MonoBehaviour
 
         if (!main.readyToGo) return;
 
-        myAim = null;
         sPrev = s;
         // определяем и задаем направление движения
         Vector3 direction = Vector3.forward * joy.Vertical + Vector3.right * joy.Horizontal;
@@ -95,131 +94,84 @@ public class Player : MonoBehaviour
         sCur = s;
 
         // определяем, хватает ли игроку энергии для начала движения
-        if (s != 0)
+        //if (sPrev == 0 && sCur > 0)
+        //{
+        //    if (curEnergy >= matrixEnergyDrop)
+        //    {
+        //        if (inMatrix == false)
+        //        {
+        //            inMatrix = true;
+        //            main.ToneMap.enabled = true;
+        //            main.curSlowerCoeff = main.matrixCoeff;
+        //        }
+        //    }
+        //}
+
+        //if (curEnergy >= matrixEnergyDrop)
+        //{
+        //    if (inMatrix == false)
+        //    {
+        //        print("");
+        //        inMatrix = true;
+        //        main.ToneMap.enabled = true;
+        //        main.curSlowerCoeff = main.matrixCoeff;
+        //    }
+        //}
+
+        // двигаем игрока в заданном направлении        
+        if (moveDirection != Vector3.zero)
         {
-            if (sPrev == 0 && sCur > 0)
+            if (timerForRage > 0)
             {
-                if (curEnergy >= matrixEnergyDrop)
+                transform.position += moveDirection * rageSpeed * Time.deltaTime * main.curSlowerCoeff;
+
+                timerForRage -= Time.deltaTime * main.curSlowerCoeff;
+
+                if (timerForRage <= 0)
                 {
-                    if (inMatrix == false)
-                    {
-                        // тратим энергию перманентно на активацию (опционально: если это не нужно, то matrixEnergyDrop установить рааным 0)
-                        curEnergy -= matrixEnergyDrop;
-                        UIRefresh(curEnergy);
-                        freeSlowMoTimer = freeSlowMoTime;
-                        inMatrix = true;
-                        main.ToneMap.enabled = true;
-                    }
+                    mr.GetPropertyBlock(MPB);
+                    MPB.SetColor("_Color", bodyColor);
+                    mr.SetPropertyBlock(MPB);
+
+                    timerForRage = -1;
                 }
-                else
-                {
-                    s = 0;
-                }
+            }
+            if (timerForRage < 0)
+            {
+                transform.position += moveDirection * moveSpeed * Time.deltaTime * main.curSlowerCoeff;
+            }
+
+            if (Physics.SphereCast(coll.bounds.center, 0.4f, moveDirection, out RChit, 1, 1 << 9))
+            {
+                normal = RChit.normal;
             }
         }
 
-        // включаем режим МАТРИЦА
-        if (inMatrix)
+        if (curEnergy < maxEnergy)
         {
-            main.curSlowerCoeff = main.matrixCoeff;
-            freeSlowMoTimer -= Time.deltaTime;
-            if (freeSlowMoTimer < 0) freeSlowMoTimer = 0;
-
-            // тратим энергию посекундно (опционально: если это не нужно, то energyGrowPerSec установить равным 0)
-            if (curEnergy > 0)
-            {
-                if (freeSlowMoTimer == 0) curEnergy -= energyGrowPerSec * Time.deltaTime;
-            }
-            else
-            {
-                curEnergy = 0;
-                s = 0;
-                // при достижении нулевой энергии
-                //либо выходить из матрицы полностью (раскомментировать строку), 
-                //либо оставаться в ней (всё замедленно), 
-                //но без движения и восстановления энергии 
-                //(т.е. игрок всё равно будет вынужден отпустить палец от экрана, 
-                //зато у него будет время оценить обстановку)
-                // П.С.: мне нравится второй вариант (строка закомментирована)
-                //inMatrix = false; 
-            }
+            curEnergy += energyRecoveryPerSec * Time.deltaTime * main.curSlowerCoeff;
+            if (curEnergy > maxEnergy) curEnergy = maxEnergy;
             UIRefresh(curEnergy);
         }
-        else main.curSlowerCoeff = 1;
-
-        // двигаем и поворачиваем игрока в заданном направлении        
-        if (s > 0 && inMatrix)
-        {
-            transform.position += direction.normalized * s * Time.deltaTime;
-            if (Quaternion.LookRotation(direction) != Quaternion.identity) transform.rotation = Quaternion.LookRotation(direction);
-        }
-
-        // определяем близжайщего видимого (не закрытого препятствиями) врага
-        float nearestShootDist = shootRange;
-        foreach (Enemy e in main.enemies)
-        {
-            e.AimRing.SetActive(false);
-            if ((e.transform.position - transform.position).magnitude <= nearestShootDist && !Physics.SphereCast(transform.position + Vector3.up * 0.5f, 0.2f, e.transform.position - transform.position, out RChit, (e.transform.position - transform.position).magnitude, 1 << 9))
-            {
-                myAim = e;
-                nearestShootDist = (e.transform.position - transform.position).magnitude;
-            }
-        }
-
-        // если игрок стоит (скорость передвижения == 0), то он долбит по ближайшему врагу
-        // и восстанавливает энергию
-        if (s == 0 && !inMatrix)
-        {
-            if (curEnergy < maxEnergy) curEnergy += energyRecoveryPerSec * Time.deltaTime;
-            else curEnergy = maxEnergy;
-            UIRefresh(curEnergy);
-
-            if (myAim != null)
-            {
-                myAim.AimRing.SetActive(true);
-                // если смотрим на врага, то стреляем в него
-                Vector3 fwd = transform.forward; fwd.y = 0;
-                Vector3 dir = myAim.transform.position - transform.position; dir.y = 0;
-                if (Vector3.Angle(fwd, dir) <= 1f)
-                {
-                    if (!reloading)
-                    {
-                        // вытаскиваем из пула и настраиваем прожектайл 
-                        Rocket rocket = main.rocketsPool.GetChild(0).GetComponent<Rocket>();
-                        rocket.transform.parent = null;
-                        rocket.transform.position = transform.position + 0.5f * Vector3.up;
-                        rocket.startPoint = rocket.transform.position;
-                        rocket.maxRange = shootRange;
-                        rocket.MyShooterTag = tag;
-                        rocket.flying = true;
-                        rocket.speed = rocketSpeed;
-                        rocket.damage = rocketDamage;
-                        rocket.direction = myAim.transform.position - transform.position;
-                        // "пережаряжаемся" (задержка между выстрелами)
-                        StartCoroutine(Reloading(reloadingTime));
-                    }
-                }
-                // иначе поворачиваемся на врага для стрельбы
-                else
-                {
-                    transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(fwd, dir, rotateSpeed * Time.deltaTime, 0));
-                }
-            }
-        }
     }
-
-    // "перезарядка" оружия (задержка между выстрелами)
-    IEnumerator Reloading(float reloadingTime)
-    {
-        reloading = true;
-        yield return new WaitForSeconds(reloadingTime);
-        reloading = false;
-    }
-
 
     void LateUpdate()
     {
         // тянем камеру за игроком (только по вертикали)
         CamTarget.position = new Vector3(CamTarget.position.x, CamTarget.position.y, transform.position.z);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Wall")
+        {
+            //Debug.DrawRay(RChit.point, -moveDirection, Color.red, 20);
+
+            moveDirection = Vector3.Reflect(moveDirection, normal).normalized;
+
+            transform.rotation = Quaternion.LookRotation(moveDirection);
+
+            //Debug.DrawRay(RChit.point, moveDirection, Color.red, 20);
+        }
     }
 }

@@ -33,8 +33,11 @@ public class Player : MonoBehaviour
     [HideInInspector] public Collider coll;
 
     public Color bodyColor;
+    public Color rageBodyColor;
     [HideInInspector] public MaterialPropertyBlock MPB;
     [HideInInspector] public MeshRenderer mr;
+    [HideInInspector] public TrailRenderer tr;
+    [HideInInspector] public LineRenderer lr;
 
     public bool inMatrix;
 
@@ -53,6 +56,8 @@ public class Player : MonoBehaviour
 
         MPB = new MaterialPropertyBlock();
         mr = GetComponentInChildren<MeshRenderer>();
+        tr = GetComponentInChildren<TrailRenderer>();
+        lr = GetComponentInChildren<LineRenderer>();
         mr.GetPropertyBlock(MPB);
         MPB.SetColor("_Color", bodyColor);
         mr.SetPropertyBlock(MPB);
@@ -133,6 +138,10 @@ public class Player : MonoBehaviour
                     MPB.SetColor("_Color", bodyColor);
                     mr.SetPropertyBlock(MPB);
 
+                    transform.localScale = Vector3.one;
+
+                    tr.enabled = false;
+
                     timerForRage = -1;
                 }
             }
@@ -198,5 +207,52 @@ public class Player : MonoBehaviour
 
         //    Debug.DrawRay(other.GetContact(0).point, moveDirection, Color.red, 2);
         //}
+    }
+
+    Vector3[] GetPath(Vector3 dir, float height, float lastdist)
+    {
+        List<Vector3> path = new List<Vector3>();
+        path.Add(transform.position + new Vector3(0, height, 0));
+
+
+        if (Physics.SphereCast(path[0], 0.4f, dir, out RChit, 10f, 1 << 9) ||
+            Physics.SphereCast(path[0], 0.4f, dir, out RChit, 10f, 1 << 10))
+        {
+            path.Add(RChit.point);
+        }
+        //if (Physics.Raycast(path[0], dir, out RChit, 10f, 1 << 9))
+        //{
+        //    path.Add(RChit.point);
+        //}
+        else
+        {
+            path.Add(path[0] + dir * 10f);
+            return path.ToArray();
+        }
+
+        dir = Vector3.Reflect(dir, RChit.normal).normalized;
+
+        if (Physics.SphereCast(path[1], 0.4f, dir, out RChit, lastdist, 1 << 9) ||
+            Physics.SphereCast(path[1], 0.4f, dir, out RChit, lastdist, 1 << 10))
+        {
+            path.Add(RChit.point);
+        }
+        //if (Physics.Raycast(path[1], dir, out RChit, lastdist, 1 << 9))
+        //{
+        //    path.Add(RChit.point);
+        //}
+        else
+        {
+            path.Add(path[1] + dir * lastdist);
+        }
+
+        return path.ToArray();
+    }
+
+    public void PathShower(Vector3 dir)
+    {
+        Vector3[] path = GetPath(dir, 0.4f, 3f);
+        lr.positionCount = path.Length;
+        lr.SetPositions(path);
     }
 }

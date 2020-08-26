@@ -309,7 +309,7 @@ public class Enemy : MonoBehaviour
         if (timerForVoidZoneReloading >= voidZoneReloadingTime)
         {
             VoidZone voidZone = main.voidZonesPool.GetChild(0).GetComponent<VoidZone>();
-            //voidZone.transform.parent = null;
+            voidZone.transform.parent = null;
             //if ((main.player.transform.position - transform.position).magnitude <= shootRange)
             //{
             //    voidZone.transform.position = main.player.transform.position;
@@ -322,13 +322,11 @@ public class Enemy : MonoBehaviour
             if (voidZoneCastRange == 0)
             {
                 voidZone.transform.position = transform.position;
-                voidZone.transform.parent = transform;
             }
             else
             {
                 GetRandomPoint(transform.position, voidZoneCastRange);
                 if (path.corners.Length > 1) voidZone.transform.position = path.corners.Last();
-                voidZone.transform.parent = null;
             }
             voidZone.damage = voidZoneDamage;
             voidZone.radius = voidZoneRadius;
@@ -415,19 +413,6 @@ public class Enemy : MonoBehaviour
             }
             else
             {
-                //if (isArmored)
-                //{
-                //    Vector3 normal = Vector3.zero;
-                //    Vector3 dir = coll.bounds.center - p.coll.bounds.center;
-                //    if (Physics.Raycast(p.coll.bounds.center, dir.normalized, out RChit, dir.magnitude + 0.1f, 1 << 10))
-                //    {
-                //        normal = RChit.normal;
-                //    }
-
-                //    p.moveDirection = Vector3.Reflect(p.moveDirection, normal).normalized;
-                //    p.transform.rotation = Quaternion.LookRotation(p.moveDirection);
-                //}
-
                 if (collDamage > 0 && p.timerForRage <= 0)
                 {
                     main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);

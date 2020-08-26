@@ -94,8 +94,11 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
                 main.ToneMap.enabled = true;
                 main.curSlowerCoeff = main.matrixCoeff;
                 if (!background.gameObject.activeSelf) background.gameObject.SetActive(true);
+                if (!main.player.lr.enabled) main.player.lr.enabled = true;
             }
         }
+        
+        main.player.PathShower(direction.normalized);
     }
 
     protected virtual void HandleInput(float magnitude, Vector2 normalised, Vector2 radius, Camera cam)
@@ -160,6 +163,9 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         {
             main.player.inMatrix = false;
             main.curSlowerCoeff = 1;
+
+            main.player.lr.enabled = false;
+
             if (main.player.curEnergy >= main.player.matrixEnergyDrop)
             {
                 if (direction.magnitude != 0)
@@ -175,8 +181,12 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
                     main.player.timerForRage = main.player.rageTime;
 
                     main.player.mr.GetPropertyBlock(main.player.MPB);
-                    main.player.MPB.SetColor("_Color", Color.red);
+                    main.player.MPB.SetColor("_Color", main.player.rageBodyColor);
                     main.player.mr.SetPropertyBlock(main.player.MPB);
+
+                    main.player.transform.localScale = new Vector3(1, 1, 1.15f);
+
+                    main.player.tr.enabled = true;
                 }
             }
         }

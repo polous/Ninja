@@ -195,7 +195,7 @@ GameObject:
   - component: {fileID: 8073356480628010922}
   - component: {fileID: 8073356480628010921}
   - component: {fileID: 263418116}
-  m_Layer: 10
+  m_Layer: 0
   m_Name: Enemy_Follow_Simple
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -256,6 +256,7 @@ MonoBehaviour:
   mr: {fileID: 0}
   coll: {fileID: 0}
   anim: {fileID: 0}
+  rb: {fileID: 0}
   rocketColor: {r: 0, g: 0.01691605, b: 0.49056602, a: 1}
   rocketSize: 0.25
 --- !u!135 &8073356480628010921

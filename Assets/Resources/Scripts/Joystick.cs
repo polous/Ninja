@@ -41,7 +41,7 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     private Vector2 input = Vector2.zero;
 
-    private Vector3 direction;
+    public Vector3 direction;
 
     protected virtual void Start()
     {
@@ -97,8 +97,6 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
                 if (!main.player.lr.enabled) main.player.lr.enabled = true;
             }
         }
-        
-        main.player.PathShower(direction.normalized);
     }
 
     protected virtual void HandleInput(float magnitude, Vector2 normalised, Vector2 radius, Camera cam)
@@ -173,10 +171,11 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
                     main.player.curEnergy -= main.player.matrixEnergyDrop;
                     main.player.moveDirection = direction.normalized;
 
-                    main.player.transform.rotation = Quaternion.LookRotation(direction.normalized);
+                    main.player.PathShower(direction.normalized);
 
-                    //main.player.rb.AddForce(direction.normalized * main.player.moveSpeed, ForceMode.VelocityChange);
-                    //main.player.rb.velocity = direction.normalized * main.player.moveSpeed;
+                    //print("UP: "+direction.normalized.x+"/"+ direction.normalized.y + "/" + direction.normalized.z);
+
+                    main.player.transform.rotation = Quaternion.LookRotation(direction.normalized);
 
                     main.player.timerForRage = main.player.rageTime;
 
@@ -184,7 +183,8 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
                     main.player.MPB.SetColor("_Color", main.player.rageBodyColor);
                     main.player.mr.SetPropertyBlock(main.player.MPB);
 
-                    main.player.transform.localScale = new Vector3(1, 1, 1.15f);
+                    main.player.anim.enabled = false;
+                    main.player.transform.GetChild(0).localScale = new Vector3(0.8f, 0.8f, 1.0f);
 
                     main.player.tr.enabled = true;
                 }

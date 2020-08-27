@@ -177,6 +177,9 @@ MonoBehaviour:
   rb: {fileID: 0}
   rocketColor: {r: 0, g: 0.01691605, b: 0.49056602, a: 1}
   rocketSize: 0.25
+  isMother: 0
+  ChildPrefab: {fileID: 0}
+  bornChildReloadingTime: 0
 --- !u!135 &8073356480628010921
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -204,5 +207,5 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 1
   m_Interpolate: 0
-  m_Constraints: 126
+  m_Constraints: 0
   m_CollisionDetection: 0

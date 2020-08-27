@@ -256,8 +256,12 @@ MonoBehaviour:
   mr: {fileID: 0}
   coll: {fileID: 0}
   anim: {fileID: 0}
+  rb: {fileID: 0}
   rocketColor: {r: 0, g: 0.01691605, b: 0.49056602, a: 1}
   rocketSize: 0.25
+  isMother: 0
+  ChildPrefab: {fileID: 0}
+  bornChildReloadingTime: 0
 --- !u!65 &7947253113464909154
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -79,8 +79,9 @@ public class Rocket : MonoBehaviour
                     Player p = main.player;
                     main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);
 
-                    p.curHealthPoint -= damage;
-                    p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, damage);
+                    p.curHealthPoint -= damage; if (p.curHealthPoint < 0) p.curHealthPoint = 0;
+                    //p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, damage);
+                    p.UIHealthRefresh();
 
                     if (p.curHealthPoint <= 0)
                     {

@@ -64,6 +64,7 @@ public class Enemy : MonoBehaviour
     float timerForReloading;
     float timerForVoidZoneReloading;
     float timerForVoidZoneCasting;
+    float timerForBornChild;
 
     int i;
 
@@ -76,6 +77,13 @@ public class Enemy : MonoBehaviour
 
     public Color rocketColor;
     public float rocketSize;
+
+    public bool isMother;
+    public GameObject ChildPrefab;
+    public float bornChildReloadingTime;
+    Transform Throwpoint;
+    bool isBorning;
+
 
 
     public void StartScene()
@@ -97,6 +105,7 @@ public class Enemy : MonoBehaviour
         path = new NavMeshPath();
 
         timerForVoidZoneReloading = Random.Range(0, voidZoneReloadingTime); // рандомный таймер для войд зоны (чтобы на старте все враги не начинали одновременный каст)
+        timerForBornChild = Random.Range(0, bornChildReloadingTime); // рандомный таймер для родов (чтобы на старте все матки не начинали одновременные роды)
         timerForReloading = reloadingTime;
         timerForVoidZoneCasting = voidZoneDuration;
 
@@ -141,6 +150,37 @@ public class Enemy : MonoBehaviour
     }
 
 
+    Vector3 GetRandomPointForBorn(Vector3 center, float maxDistance)
+    {
+        NavMeshPath bornPath = new NavMeshPath();
+        for (int c = 0; c < 50; c++)
+        {
+            // случайная точка внутри окружности, расположенной в center с радиусом maxDistance
+            Vector3 randomPos = new Vector3(Random.Range(center.x - maxDistance, center.x + maxDistance), 0, Random.Range(center.z - maxDistance, center.z + maxDistance));
+            // если длина пути достаточная
+            if ((randomPos - center).magnitude < maxDistance * 2f / 3f) continue;
+
+            // вычисляем путь до randomPos по Navmesh сетке
+            NavMesh.CalculatePath(transform.position, randomPos, NavMesh.AllAreas, bornPath);
+            // если путь построен
+            if (bornPath.status == NavMeshPathStatus.PathComplete)
+            {
+                return randomPos;
+            }
+        }
+        return Vector3.zero;
+    }
+
+
+    float ThrowVelocityCalc(float g, float ang, float x, float y)
+    {
+        float angRad = ang * Mathf.PI / 180f;
+        float v2 = (g * x * x) / (2 * (y - Mathf.Tan(angRad) * x) * Mathf.Pow(Mathf.Cos(angRad), 2));
+        float v = Mathf.Sqrt(Mathf.Abs(v2));
+        return v;
+    }
+
+
     void Update()
     {
         if (main == null) return;
@@ -149,6 +189,18 @@ public class Enemy : MonoBehaviour
 
         if (!main.readyToGo) return;
 
+        if (isBorning)
+        {
+            if (transform.position.y < 0)
+            {
+                isBorning = false;
+                coll.enabled = true;
+                rb.isKinematic = true;
+                rb.useGravity = false;
+                transform.position = new Vector3(transform.position.x, 0, transform.position.z);
+            }
+            return;
+        }
 
         if (main.player != null)
         {
@@ -161,6 +213,56 @@ public class Enemy : MonoBehaviour
 
                     // пока враг кастует войд зону, он больше ничем не занимается
                     if (timerForVoidZoneCasting < voidZoneDuration) return;
+                }
+            }
+
+            // делаем детишек
+            if (isMother)
+            {
+                if (bornChildReloadingTime > 0)
+                {
+                    timerForBornChild += Time.deltaTime * main.curSlowerCoeff;
+                    if (timerForBornChild >= bornChildReloadingTime && main.player.timerForRage <= 0)
+                    {
+                        Vector3 bornPos = GetRandomPointForBorn(transform.position, 3f);
+                        if (bornPos != Vector3.zero)
+                        {
+                            Enemy Child = Instantiate(ChildPrefab).GetComponent<Enemy>();                          
+                            main.enemies.Add(Child);
+                            Child.main = main;
+                            Child.StartScene();
+
+                            float g = Physics.gravity.y;
+                            float velocity;
+                            float ThrowDistX, ThrowDistY;
+                            float Ang = 80;
+
+                            Throwpoint = transform.Find("Throwpoint");
+                            Child.transform.position = Throwpoint.position;
+
+                            Vector3 FromTo = bornPos - Throwpoint.position;
+                            Vector3 FromToXZ = new Vector3(FromTo.x, 0f, FromTo.z);
+
+                            //GameObject Sphere = Instantiate(Resources.Load<GameObject>("Prefabs/Sphere")) as GameObject;
+                            //Sphere.transform.position = bornPos;
+
+                            ThrowDistX = FromToXZ.magnitude;
+                            ThrowDistY = FromTo.y;
+                            
+                            Throwpoint.rotation = Quaternion.LookRotation(FromToXZ);                            
+
+                            Throwpoint.localEulerAngles = new Vector3(-Ang, Throwpoint.localEulerAngles.y, Throwpoint.localEulerAngles.z);
+                            velocity = ThrowVelocityCalc(g, Ang, ThrowDistX, ThrowDistY);
+
+                            Child.isBorning = true;
+                            Child.coll.enabled = false;
+                            Child.rb.isKinematic = false;
+                            Child.rb.useGravity = true;
+                            Child.rb.velocity = velocity * Throwpoint.forward;
+
+                            timerForBornChild = 0;
+                        }
+                    }
                 }
             }
 
@@ -269,8 +371,7 @@ public class Enemy : MonoBehaviour
                         moving = false;
                     }
                 }
-            }
-
+            }            
         }
 
     }
@@ -395,11 +496,15 @@ public class Enemy : MonoBehaviour
         {
             Player p = main.player;
 
+            // обнуляем позиции по У
+            transform.position = new Vector3(transform.position.x, 0, transform.position.z);
+            p.transform.position = new Vector3(p.transform.position.x, 0, p.transform.position.z);
+
             if (collHeal != 0 && p.curHealthPoint < p.maxHealthPoint)
             {
-                p.curHealthPoint += collHeal;
-                if (p.curHealthPoint > p.maxHealthPoint) p.curHealthPoint = p.maxHealthPoint;
-                p.healthPanelScript.HealFunction(p.curHealthPoint / p.maxHealthPoint, collHeal);
+                p.curHealthPoint += collHeal; if (p.curHealthPoint > p.maxHealthPoint) p.curHealthPoint = p.maxHealthPoint;
+                //p.healthPanelScript.HealFunction(p.curHealthPoint / p.maxHealthPoint, collHeal);
+                p.UIHealthRefresh();
             }
 
             main.BodyHitReaction(mr, MPB, bodyColor);
@@ -417,8 +522,9 @@ public class Enemy : MonoBehaviour
                 {
                     main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);
 
-                    p.curHealthPoint -= collDamage;
-                    p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, collDamage);
+                    p.curHealthPoint -= collDamage; if (p.curHealthPoint < 0) p.curHealthPoint = 0;
+                    //p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, collDamage);
+                    p.UIHealthRefresh();
 
                     if (p.curHealthPoint <= 0)
                     {
@@ -435,11 +541,15 @@ public class Enemy : MonoBehaviour
         {
             Player p = main.player;
 
+            // обнуляем позиции по У
+            transform.position = new Vector3(transform.position.x, 0, transform.position.z);
+            p.transform.position = new Vector3(p.transform.position.x, 0, p.transform.position.z);
+
             if (collHeal != 0 && p.curHealthPoint < p.maxHealthPoint)
             {
-                p.curHealthPoint += collHeal;
-                if (p.curHealthPoint > p.maxHealthPoint) p.curHealthPoint = p.maxHealthPoint;
-                p.healthPanelScript.HealFunction(p.curHealthPoint / p.maxHealthPoint, collHeal);
+                p.curHealthPoint += collHeal; if (p.curHealthPoint > p.maxHealthPoint) p.curHealthPoint = p.maxHealthPoint;
+                //p.healthPanelScript.HealFunction(p.curHealthPoint / p.maxHealthPoint, collHeal);
+                p.UIHealthRefresh();
             }
 
             main.BodyHitReaction(mr, MPB, bodyColor);
@@ -460,8 +570,9 @@ public class Enemy : MonoBehaviour
                 {
                     main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);
 
-                    p.curHealthPoint -= collDamage;
-                    p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, collDamage);
+                    p.curHealthPoint -= collDamage; if (p.curHealthPoint < 0) p.curHealthPoint = 0;
+                    //p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, collDamage);
+                    p.UIHealthRefresh();
 
                     if (p.curHealthPoint <= 0)
                     {

@@ -13,12 +13,13 @@ public class Main : MonoBehaviour
     public Transform rocketsPool; // пул прожектайлов
     public Transform voidZonesPool; // пул войд зон
     public Transform voidZoneCastEffectsPool; // пул эффектов кастования войд зоны
-    public Transform healthPanelsPool; // пул UI панелей здоровья
+    //public Transform healthPanelsPool; // пул UI панелей здоровья
+    public Transform energyPanelsPool; // пул UI панелей energy
     public Transform deathEffectsPool; // пул эффектов смерти
     public float matrixCoeff; // коэффициент замедления времени во время движения игрока 
     public float curSlowerCoeff; // текущее замедление (либо нормальная скорость [=1], либо пониженная [=matrixCoeff])
-    public Image EnergySlider;
-    public Text EnergyCount;
+    public Image HealthSlider;
+    public Text HealthCount;
     public Transform playerSpawnPoint;
     public Joystick joy;
 
@@ -97,11 +98,18 @@ public class Main : MonoBehaviour
         player = Instantiate(Resources.Load<GameObject>("Prefabs/Player")).GetComponent<Player>();
         player.main = this;
         // инстанциируем для игрока хэлс бар
-        Transform hPanelp = Instantiate(Resources.Load<GameObject>("Prefabs/healthPanel")).transform;
-        hPanelp.SetParent(healthPanelsPool);
-        hPanelp.localScale = new Vector3(1, 1, 1);
-        player.healthPanel = hPanelp;
-        player.healthPanelScript = hPanelp.GetComponent<HealthPanel>();
+        //Transform hPanelp = Instantiate(Resources.Load<GameObject>("Prefabs/healthPanel")).transform;
+        //hPanelp.SetParent(healthPanelsPool);
+        //hPanelp.localScale = new Vector3(1, 1, 1);
+        //player.healthPanel = hPanelp;
+        //player.healthPanelScript = hPanelp.GetComponent<HealthPanel>();
+        // инстанциируем для игрока energy бар
+        Transform ep = Instantiate(Resources.Load<GameObject>("Prefabs/EnergyPanel")).transform;
+        ep.SetParent(energyPanelsPool);
+        ep.localScale = Vector3.one;
+        player.energyPanel = ep;
+        player.energySlider = ep.transform.GetChild(0).GetComponent<Image>();
+        
         player.StartScene();
 
         curSlowerCoeff = 1; // на старте игры скорость игры нормальная
@@ -112,9 +120,9 @@ public class Main : MonoBehaviour
         {
             e.main = this;
             // инстанциируем для врагов хэлс бары
-            Transform hPanele = Instantiate(Resources.Load<GameObject>("Prefabs/healthPanel")).transform;
-            hPanele.SetParent(healthPanelsPool);
-            hPanele.localScale = new Vector3(1, 1, 1);
+            //Transform hPanele = Instantiate(Resources.Load<GameObject>("Prefabs/healthPanel")).transform;
+            //hPanele.SetParent(healthPanelsPool);
+            //hPanele.localScale = new Vector3(1, 1, 1);
             //e.healthPanel = hPanele;
             //e.healthPanelScript = hPanele.GetComponent<HealthPanel>();
             e.StartScene();
@@ -129,7 +137,7 @@ public class Main : MonoBehaviour
         player.curHealthPoint = storedPlayerHealth + playerHealthRecoveryCount * player.maxHealthPoint / 100f;
         if (player.curHealthPoint > player.maxHealthPoint) player.curHealthPoint = player.maxHealthPoint;
 
-        player.healthPanelScript.healthSlider.fillAmount = player.curHealthPoint / player.maxHealthPoint;
+        player.UIHealthRefresh();
     }
 
 
@@ -236,7 +244,7 @@ public class Main : MonoBehaviour
     // убиваем игрока
     IEnumerator PlayerDeath(Player p)
     {
-        p.healthPanel.GetComponent<Image>().enabled = false;
+        p.energyPanel.gameObject.SetActive(false);
         p.enabled = false;
         foreach (MeshRenderer mr in p.GetComponentsInChildren<MeshRenderer>()) mr.enabled = false;
         p.GetComponent<Collider>().enabled = false;
@@ -254,7 +262,7 @@ public class Main : MonoBehaviour
 
         deathEffect.SetParent(deathEffectsPool);
         Destroy(p.gameObject);
-        Destroy(p.healthPanel.gameObject);
+        Destroy(p.energyPanel.gameObject);
 
         StartCoroutine(EndOfBattle());
     }
@@ -277,7 +285,7 @@ public class Main : MonoBehaviour
     {
         if (player != null)
         {
-            Destroy(player.healthPanel.gameObject);
+            //Destroy(player.healthPanel.gameObject);
             Destroy(player.gameObject);
 
             yield return null;
@@ -330,7 +338,7 @@ public class Main : MonoBehaviour
             yield break;
         }
 
-        Destroy(player.healthPanel.gameObject);
+        //Destroy(player.healthPanel.gameObject);
         Destroy(player.gameObject);
 
         yield return null;

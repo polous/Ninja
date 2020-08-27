@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
@@ -23,8 +24,10 @@ public class Player : MonoBehaviour
     float sPrev, sCur;
     public float maxHealthPoint; // максимальный запас здоровья
     public float curHealthPoint; // текущий запас здоровья
-    [HideInInspector] public Transform healthPanel;
-    [HideInInspector] public HealthPanel healthPanelScript;
+    //[HideInInspector] public Transform healthPanel;
+    //[HideInInspector] public HealthPanel healthPanelScript;
+    [HideInInspector] public Transform energyPanel;
+    [HideInInspector] public Image energySlider;
 
     Transform CamTarget;
     [HideInInspector] public Main main;
@@ -38,6 +41,7 @@ public class Player : MonoBehaviour
     [HideInInspector] public MeshRenderer mr;
     [HideInInspector] public TrailRenderer tr;
     [HideInInspector] public LineRenderer lr;
+    [HideInInspector] public Animator anim;
 
     public bool inMatrix;
 
@@ -58,6 +62,7 @@ public class Player : MonoBehaviour
         mr = GetComponentInChildren<MeshRenderer>();
         tr = GetComponentInChildren<TrailRenderer>();
         lr = GetComponentInChildren<LineRenderer>();
+        anim = GetComponentInChildren<Animator>();
         mr.GetPropertyBlock(MPB);
         MPB.SetColor("_Color", bodyColor);
         mr.SetPropertyBlock(MPB);
@@ -71,23 +76,29 @@ public class Player : MonoBehaviour
         s = 0;
         curEnergy = maxEnergy;
         curHealthPoint = maxHealthPoint;
-        UIRefresh(curEnergy);
+        UIEnergyRefresh();
 
         joy = main.joy;
     }
 
-    // обновление UI
-    public void UIRefresh(float curEnergy)
+    // обновление UI Energy
+    public void UIEnergyRefresh()
     {
-        main.EnergySlider.fillAmount = curEnergy / maxEnergy;
-        main.EnergyCount.text = curEnergy.ToString("F0");
+        energySlider.fillAmount = curEnergy / maxEnergy;
+    }
+
+    //обновление UI Health
+    public void UIHealthRefresh()
+    {
+        main.HealthSlider.fillAmount = curHealthPoint / maxHealthPoint;
+        main.HealthCount.text = curHealthPoint.ToString("F0");
     }
 
     private void Update()
     {
         if (main == null) return;
 
-        if (healthPanel != null) healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
+        if (energyPanel != null) energyPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
 
         if (!main.readyToGo) return;
 
@@ -98,30 +109,11 @@ public class Player : MonoBehaviour
         else s = moveSpeed;
         sCur = s;
 
-        // определяем, хватает ли игроку энергии для начала движения
-        //if (sPrev == 0 && sCur > 0)
-        //{
-        //    if (curEnergy >= matrixEnergyDrop)
-        //    {
-        //        if (inMatrix == false)
-        //        {
-        //            inMatrix = true;
-        //            main.ToneMap.enabled = true;
-        //            main.curSlowerCoeff = main.matrixCoeff;
-        //        }
-        //    }
-        //}
 
-        //if (curEnergy >= matrixEnergyDrop)
-        //{
-        //    if (inMatrix == false)
-        //    {
-        //        print("");
-        //        inMatrix = true;
-        //        main.ToneMap.enabled = true;
-        //        main.curSlowerCoeff = main.matrixCoeff;
-        //    }
-        //}
+        if (inMatrix)
+        {
+            PathShower(joy.direction.normalized);
+        }
 
         // двигаем игрока в заданном направлении        
         if (moveDirection != Vector3.zero)
@@ -138,7 +130,7 @@ public class Player : MonoBehaviour
                     MPB.SetColor("_Color", bodyColor);
                     mr.SetPropertyBlock(MPB);
 
-                    transform.localScale = Vector3.one;
+                    anim.enabled = true;               
 
                     tr.enabled = false;
 
@@ -149,18 +141,13 @@ public class Player : MonoBehaviour
             {
                 transform.position += moveDirection * moveSpeed * Time.deltaTime * main.curSlowerCoeff;
             }
-
-            //if (Physics.SphereCast(coll.bounds.center, 0.4f, moveDirection, out RChit, 1, 1 << 9))
-            //{
-            //    normal = RChit.normal;
-            //}
         }
 
         if (curEnergy < maxEnergy)
         {
             curEnergy += energyRecoveryPerSec * Time.deltaTime * main.curSlowerCoeff;
             if (curEnergy > maxEnergy) curEnergy = maxEnergy;
-            UIRefresh(curEnergy);
+            UIEnergyRefresh();
         }
     }
 
@@ -170,77 +157,83 @@ public class Player : MonoBehaviour
         CamTarget.position = new Vector3(CamTarget.position.x, CamTarget.position.y, transform.position.z);
     }
 
-    //private void OnTriggerEnter(Collider other)
-    //{
-    //    if (other.tag == "Wall")
-    //    {
-    //        Debug.DrawRay(RChit.point, -moveDirection, Color.red, 2);
-
-    //        moveDirection = Vector3.Reflect(moveDirection, normal).normalized;
-
-    //        transform.rotation = Quaternion.LookRotation(moveDirection);
-
-    //        Debug.DrawRay(RChit.point, moveDirection, Color.red, 2);
-    //    }
-    //}
 
     private void OnCollisionEnter(Collision other)
     {
         if (other.collider.tag == "Wall")
         {
-            Debug.DrawRay(other.GetContact(0).point, -moveDirection, Color.red, 2);
+            // обнуляем позицию по У
+            transform.position = new Vector3(transform.position.x, 0, transform.position.z);
+
+            Debug.DrawRay(other.GetContact(0).point, -moveDirection, Color.red, 10);
+
+            //print("col: " + other.GetContact(0).point);
 
             moveDirection = Vector3.Reflect(moveDirection, other.GetContact(0).normal).normalized;
 
             transform.rotation = Quaternion.LookRotation(moveDirection);
 
-            Debug.DrawRay(other.GetContact(0).point, moveDirection, Color.red, 2);
+            Debug.DrawRay(other.GetContact(0).point, moveDirection, Color.red, 10);
         }
-
-        //if (other.collider.tag == "Enemy")
-        //{
-        //    Debug.DrawRay(other.GetContact(0).point, -moveDirection, Color.red, 2);
-
-        //    moveDirection = Vector3.Reflect(moveDirection, other.GetContact(0).normal).normalized;
-
-        //    transform.rotation = Quaternion.LookRotation(moveDirection);
-
-        //    Debug.DrawRay(other.GetContact(0).point, moveDirection, Color.red, 2);
-        //}
     }
 
     Vector3[] GetPath(Vector3 dir, float height, float lastdist)
     {
         List<Vector3> path = new List<Vector3>();
         path.Add(transform.position + new Vector3(0, height, 0));
+        RaycastHit hit_OBS; float distToObs = 10f;
+        RaycastHit hit_NPC; float distToNpc = 10f;
 
-
-        if (Physics.SphereCast(path[0], 0.4f, dir, out RChit, 10f, 1 << 9) ||
-            Physics.SphereCast(path[0], 0.4f, dir, out RChit, 10f, 1 << 10))
+        //print("func: "+dir.x + "/" + dir.y + "/" + dir.z);
+        if (Physics.SphereCast(path[0], 0.4f, dir, out hit_OBS, distToObs, 1 << 9))
         {
-            path.Add(RChit.point);
+            distToObs = hit_OBS.distance;
+
+            //Debug.DrawRay(hit_OBS.point, -dir * 2f, Color.black, 10);
         }
-        //if (Physics.Raycast(path[0], dir, out RChit, 10f, 1 << 9))
-        //{
-        //    path.Add(RChit.point);
-        //}
+        if (Physics.SphereCast(path[0], 0.4f, dir, out hit_NPC, distToNpc, 1 << 10))
+        {
+            distToNpc = hit_NPC.distance;
+        }
+
+        if (distToObs < distToNpc)
+        {
+            path.Add(hit_OBS.point);
+            //print("func: " + hit_OBS.point);
+            dir = Vector3.Reflect(dir, hit_OBS.normal).normalized;
+
+            //Debug.DrawRay(hit_OBS.point, dir * 2f, Color.black, 10);
+        }
+        else if (distToObs > distToNpc)
+        {
+            path.Add(hit_NPC.point);
+            dir = Vector3.Reflect(dir, hit_NPC.normal).normalized;
+        }
         else
         {
             path.Add(path[0] + dir * 10f);
             return path.ToArray();
         }
 
-        dir = Vector3.Reflect(dir, RChit.normal).normalized;
-
-        if (Physics.SphereCast(path[1], 0.4f, dir, out RChit, lastdist, 1 << 9) ||
-            Physics.SphereCast(path[1], 0.4f, dir, out RChit, lastdist, 1 << 10))
+        distToObs = lastdist;
+        distToNpc = lastdist;
+        if (Physics.SphereCast(path[1], 0.4f, dir, out hit_OBS, lastdist, 1 << 9))
         {
-            path.Add(RChit.point);
+            distToObs = hit_OBS.distance;
         }
-        //if (Physics.Raycast(path[1], dir, out RChit, lastdist, 1 << 9))
-        //{
-        //    path.Add(RChit.point);
-        //}
+        if (Physics.SphereCast(path[1], 0.4f, dir, out hit_NPC, lastdist, 1 << 10))
+        {
+            distToNpc = hit_NPC.distance;
+        }
+
+        if (distToObs < distToNpc)
+        {
+            path.Add(hit_OBS.point);
+        }
+        else if (distToObs > distToNpc)
+        {
+            path.Add(hit_NPC.point);
+        }
         else
         {
             path.Add(path[1] + dir * lastdist);

@@ -139,8 +139,8 @@ MonoBehaviour:
   curEnergy: 0
   maxHealthPoint: 100
   curHealthPoint: 0
-  healthPanel: {fileID: 0}
-  healthPanelScript: {fileID: 0}
+  energyPanel: {fileID: 0}
+  energySlider: {fileID: 0}
   main: {fileID: 0}
   coll: {fileID: 0}
   bodyColor: {r: 0.3690281, g: 0.6698113, b: 0.43843967, a: 1}
@@ -148,6 +148,7 @@ MonoBehaviour:
   mr: {fileID: 0}
   tr: {fileID: 0}
   lr: {fileID: 0}
+  anim: {fileID: 0}
   inMatrix: 0
   startMoving: 0
   moveDirection: {x: 0, y: 0, z: 0}
@@ -166,7 +167,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 126
-  m_CollisionDetection: 0
+  m_CollisionDetection: 3
 --- !u!135 &-4277219035793162507
 SphereCollider:
   m_ObjectHideFlags: 0

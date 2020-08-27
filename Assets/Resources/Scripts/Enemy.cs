@@ -75,6 +75,8 @@ public class Enemy : MonoBehaviour
     [HideInInspector] public Animator anim;
     [HideInInspector] public Rigidbody rb;
 
+    public LineRenderer lr;
+
     public Color rocketColor;
     public float rocketSize;
 
@@ -181,6 +183,36 @@ public class Enemy : MonoBehaviour
     }
 
 
+    public void ShowTrajectory(Vector3 origin, Vector3 speed)
+    {
+        Vector3[] points = new Vector3[100];
+        lr.positionCount = points.Length;
+
+        for (int i = 0; i < points.Length; i++)
+        {
+            float time = i * 0.1f;
+
+            points[i] = origin + speed * time + Physics.gravity * time * time / 2f;
+
+            if (points[i].y < 0)
+            {
+                lr.positionCount = i + 1;
+                break;
+            }
+        }
+
+        lr.SetPositions(points);
+    }
+
+    float t = 0;
+    public Vector3 velocity;
+    public Vector3 origin;
+    Vector3 Ballistic(float time, Vector3 origin, Vector3 speed)
+    {
+        return origin + speed * time + Physics.gravity * time * time / 2f;
+    }
+
+
     void Update()
     {
         if (main == null) return;
@@ -191,13 +223,14 @@ public class Enemy : MonoBehaviour
 
         if (isBorning)
         {
+            t += Time.deltaTime * main.curSlowerCoeff;
+            transform.position = Ballistic(t, origin, velocity);
+
             if (transform.position.y < 0)
             {
                 isBorning = false;
-                coll.enabled = true;
-                rb.isKinematic = true;
-                rb.useGravity = false;
                 transform.position = new Vector3(transform.position.x, 0, transform.position.z);
+                t = 0;
             }
             return;
         }
@@ -227,15 +260,14 @@ public class Enemy : MonoBehaviour
                         Vector3 bornPos = GetRandomPointForBorn(transform.position, 3f);
                         if (bornPos != Vector3.zero)
                         {
-                            Enemy Child = Instantiate(ChildPrefab).GetComponent<Enemy>();                          
+                            Enemy Child = Instantiate(ChildPrefab).GetComponent<Enemy>();
                             main.enemies.Add(Child);
                             Child.main = main;
                             Child.StartScene();
 
-                            float g = Physics.gravity.y;
                             float velocity;
                             float ThrowDistX, ThrowDistY;
-                            float Ang = 80;
+                            float Ang = 70;
 
                             Throwpoint = transform.Find("Throwpoint");
                             Child.transform.position = Throwpoint.position;
@@ -243,22 +275,20 @@ public class Enemy : MonoBehaviour
                             Vector3 FromTo = bornPos - Throwpoint.position;
                             Vector3 FromToXZ = new Vector3(FromTo.x, 0f, FromTo.z);
 
-                            //GameObject Sphere = Instantiate(Resources.Load<GameObject>("Prefabs/Sphere")) as GameObject;
-                            //Sphere.transform.position = bornPos;
-
                             ThrowDistX = FromToXZ.magnitude;
                             ThrowDistY = FromTo.y;
-                            
-                            Throwpoint.rotation = Quaternion.LookRotation(FromToXZ);                            
+
+                            Throwpoint.rotation = Quaternion.LookRotation(FromToXZ);
 
                             Throwpoint.localEulerAngles = new Vector3(-Ang, Throwpoint.localEulerAngles.y, Throwpoint.localEulerAngles.z);
-                            velocity = ThrowVelocityCalc(g, Ang, ThrowDistX, ThrowDistY);
+                            velocity = ThrowVelocityCalc(Physics.gravity.y, Ang, ThrowDistX, ThrowDistY);
+
+                            //ShowTrajectory(Throwpoint.position, velocity * Throwpoint.forward);
 
                             Child.isBorning = true;
-                            Child.coll.enabled = false;
-                            Child.rb.isKinematic = false;
-                            Child.rb.useGravity = true;
-                            Child.rb.velocity = velocity * Throwpoint.forward;
+
+                            Child.velocity = velocity * Throwpoint.forward;
+                            Child.origin = Throwpoint.position;
 
                             timerForBornChild = 0;
                         }
@@ -371,7 +401,7 @@ public class Enemy : MonoBehaviour
                         moving = false;
                     }
                 }
-            }            
+            }
         }
 
     }
@@ -498,7 +528,7 @@ public class Enemy : MonoBehaviour
 
             // обнуляем позиции по У
             transform.position = new Vector3(transform.position.x, 0, transform.position.z);
-            p.transform.position = new Vector3(p.transform.position.x, 0, p.transform.position.z);
+            if (p != null) p.transform.position = new Vector3(p.transform.position.x, 0, p.transform.position.z);
 
             if (collHeal != 0 && p.curHealthPoint < p.maxHealthPoint)
             {
@@ -543,7 +573,7 @@ public class Enemy : MonoBehaviour
 
             // обнуляем позиции по У
             transform.position = new Vector3(transform.position.x, 0, transform.position.z);
-            p.transform.position = new Vector3(p.transform.position.x, 0, p.transform.position.z);
+            if (p != null) p.transform.position = new Vector3(p.transform.position.x, 0, p.transform.position.z);
 
             if (collHeal != 0 && p.curHealthPoint < p.maxHealthPoint)
             {

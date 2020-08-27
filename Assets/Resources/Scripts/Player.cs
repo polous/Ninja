@@ -245,7 +245,35 @@ public class Player : MonoBehaviour
     public void PathShower(Vector3 dir)
     {
         Vector3[] path = GetPath(dir, 0.4f, 3f);
+        //Vector3[] path = GetPath2(transform.position, dir * rageSpeed);
         lr.positionCount = path.Length;
         lr.SetPositions(path);
+    }
+
+
+    Vector3[] GetPath2(Vector3 origin, Vector3 speed)
+    {
+        GameObject bullet = Instantiate(Resources.Load<GameObject>("Prefabs/Sphere"), origin, Quaternion.identity);
+        bullet.GetComponent<Rigidbody>().AddForce(speed, ForceMode.VelocityChange);
+
+        Physics.autoSimulation = false;
+
+        // Симуляция:
+        Vector3[] points = new Vector3[50];
+
+        points[0] = origin;
+        for (int i = 1; i < points.Length; i++)
+        {
+            Physics.Simulate(0.2f);
+
+            points[i] = bullet.transform.position;
+        }
+
+        // Зачистка:
+        Physics.autoSimulation = true;
+
+        Destroy(bullet.gameObject);
+
+        return points;
     }
 }

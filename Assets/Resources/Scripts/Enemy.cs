@@ -410,6 +410,7 @@ public class Enemy : MonoBehaviour
     {
         for (int i = 0; i < rocketsCountPerShoot; i++)
         {
+            print("");
             Rocket rocket = main.rocketsPool.GetChild(0).GetComponent<Rocket>();
             rocket.transform.parent = null;
             rocket.transform.position = coll.bounds.center;
@@ -534,7 +535,8 @@ public class Enemy : MonoBehaviour
             {
                 p.curHealthPoint += collHeal; if (p.curHealthPoint > p.maxHealthPoint) p.curHealthPoint = p.maxHealthPoint;
                 //p.healthPanelScript.HealFunction(p.curHealthPoint / p.maxHealthPoint, collHeal);
-                p.UIHealthRefresh();
+                //p.UIHealthRefresh();
+                p.playerBarsScript.RefreshHealth(p.curHealthPoint / p.maxHealthPoint, p.curHealthPoint);
             }
 
             main.BodyHitReaction(mr, MPB, bodyColor);
@@ -554,7 +556,8 @@ public class Enemy : MonoBehaviour
 
                     p.curHealthPoint -= collDamage; if (p.curHealthPoint < 0) p.curHealthPoint = 0;
                     //p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, collDamage);
-                    p.UIHealthRefresh();
+                    //p.UIHealthRefresh();
+                    p.playerBarsScript.RefreshHealth(p.curHealthPoint / p.maxHealthPoint, p.curHealthPoint);
 
                     if (p.curHealthPoint <= 0)
                     {
@@ -579,7 +582,8 @@ public class Enemy : MonoBehaviour
             {
                 p.curHealthPoint += collHeal; if (p.curHealthPoint > p.maxHealthPoint) p.curHealthPoint = p.maxHealthPoint;
                 //p.healthPanelScript.HealFunction(p.curHealthPoint / p.maxHealthPoint, collHeal);
-                p.UIHealthRefresh();
+                //p.UIHealthRefresh();
+                p.playerBarsScript.RefreshHealth(p.curHealthPoint / p.maxHealthPoint, p.curHealthPoint);
             }
 
             main.BodyHitReaction(mr, MPB, bodyColor);
@@ -602,7 +606,8 @@ public class Enemy : MonoBehaviour
 
                     p.curHealthPoint -= collDamage; if (p.curHealthPoint < 0) p.curHealthPoint = 0;
                     //p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, collDamage);
-                    p.UIHealthRefresh();
+                    //p.UIHealthRefresh();
+                    p.playerBarsScript.RefreshHealth(p.curHealthPoint / p.maxHealthPoint, p.curHealthPoint);
 
                     if (p.curHealthPoint <= 0)
                     {

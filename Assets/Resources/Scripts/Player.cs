@@ -26,8 +26,11 @@ public class Player : MonoBehaviour
     public float curHealthPoint; // текущий запас здоровья
     //[HideInInspector] public Transform healthPanel;
     //[HideInInspector] public HealthPanel healthPanelScript;
-    [HideInInspector] public Transform energyPanel;
-    [HideInInspector] public Image energySlider;
+    //[HideInInspector] public Transform energyPanel;
+    //[HideInInspector] public Image energySlider;
+
+    [HideInInspector] public Transform playerBarsPanel;
+    [HideInInspector] public PlayerBars playerBarsScript;
 
     Transform CamTarget;
     [HideInInspector] public Main main;
@@ -76,29 +79,33 @@ public class Player : MonoBehaviour
         s = 0;
         curEnergy = maxEnergy;
         curHealthPoint = maxHealthPoint;
-        UIEnergyRefresh();
+
+        //UIEnergyRefresh();
+        playerBarsScript.RefreshHealth(curHealthPoint / maxHealthPoint, curHealthPoint);
+        playerBarsScript.RefreshEnergy(curEnergy / maxEnergy);
 
         joy = main.joy;
     }
 
-    // обновление UI Energy
-    public void UIEnergyRefresh()
-    {
-        energySlider.fillAmount = curEnergy / maxEnergy;
-    }
+    //// обновление UI Energy
+    //public void UIEnergyRefresh()
+    //{
+    //    energySlider.fillAmount = curEnergy / maxEnergy;
+    //}
 
-    //обновление UI Health
-    public void UIHealthRefresh()
-    {
-        main.HealthSlider.fillAmount = curHealthPoint / maxHealthPoint;
-        main.HealthCount.text = curHealthPoint.ToString("F0");
-    }
+    ////обновление UI Health
+    //public void UIHealthRefresh()
+    //{
+    //    main.HealthSlider.fillAmount = curHealthPoint / maxHealthPoint;
+    //    main.HealthCount.text = curHealthPoint.ToString("F0");
+    //}
+
 
     private void Update()
     {
         if (main == null) return;
 
-        if (energyPanel != null) energyPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
+        if (playerBarsPanel != null) playerBarsPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.1f);
 
         if (!main.readyToGo) return;
 
@@ -147,7 +154,8 @@ public class Player : MonoBehaviour
         {
             curEnergy += energyRecoveryPerSec * Time.deltaTime * main.curSlowerCoeff;
             if (curEnergy > maxEnergy) curEnergy = maxEnergy;
-            UIEnergyRefresh();
+            //UIEnergyRefresh();
+            playerBarsScript.RefreshEnergy(curEnergy / maxEnergy);
         }
     }
 

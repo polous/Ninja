@@ -133,9 +133,9 @@ MonoBehaviour:
   timerForRage: 0
   collDamage: 10
   rageCollDamage: 20
-  maxEnergy: 70
-  matrixEnergyDrop: 15
-  energyRecoveryPerSec: 3
+  maxEnergy: 100
+  matrixEnergyDrop: 33
+  energyRecoveryPerSec: 11
   curEnergy: 0
   maxHealthPoint: 100
   curHealthPoint: 0

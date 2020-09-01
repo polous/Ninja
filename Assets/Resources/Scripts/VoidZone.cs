@@ -54,7 +54,8 @@ public class VoidZone : MonoBehaviour
 
                         p.curHealthPoint -= damage; if (p.curHealthPoint < 0) p.curHealthPoint = 0;
                         //p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, damage);
-                        p.UIHealthRefresh();
+                        //p.UIHealthRefresh();
+                        p.playerBarsScript.RefreshHealth(p.curHealthPoint / p.maxHealthPoint, p.curHealthPoint);
                         if (p.curHealthPoint <= 0)
                         {
                             main.PlayerDie(p);

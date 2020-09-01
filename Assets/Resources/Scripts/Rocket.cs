@@ -49,6 +49,7 @@ public class Rocket : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        print(other);
         // если прожектайл столкнулся с препятствием - возвращаем в пул
         if (other.tag == "Wall")
         {
@@ -56,7 +57,7 @@ public class Rocket : MonoBehaviour
             flying = false;
         }
         // если прожектайл столкнулся с НПС - наносим урон - возвращаем в пул
-        else 
+        else if(other.tag == "Enemy" || other.tag == "Player")
         {
             if (other.tag != MyShooterTag) // исключаем самопоражение и фрэндли файр
             {
@@ -81,7 +82,8 @@ public class Rocket : MonoBehaviour
 
                     p.curHealthPoint -= damage; if (p.curHealthPoint < 0) p.curHealthPoint = 0;
                     //p.healthPanelScript.HitFunction(p.curHealthPoint / p.maxHealthPoint, damage);
-                    p.UIHealthRefresh();
+                    //p.UIHealthRefresh();
+                    p.playerBarsScript.RefreshHealth(p.curHealthPoint / p.maxHealthPoint, p.curHealthPoint);
 
                     if (p.curHealthPoint <= 0)
                     {

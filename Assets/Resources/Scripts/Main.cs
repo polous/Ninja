@@ -14,12 +14,13 @@ public class Main : MonoBehaviour
     public Transform voidZonesPool; // пул войд зон
     public Transform voidZoneCastEffectsPool; // пул эффектов кастования войд зоны
     //public Transform healthPanelsPool; // пул UI панелей здоровья
-    public Transform energyPanelsPool; // пул UI панелей energy
+    //public Transform energyPanelsPool; // пул UI панелей energy
+    public Transform PlayerBarsPool; // пул UI панелей HP/EN
     public Transform deathEffectsPool; // пул эффектов смерти
     public float matrixCoeff; // коэффициент замедления времени во время движения игрока 
     public float curSlowerCoeff; // текущее замедление (либо нормальная скорость [=1], либо пониженная [=matrixCoeff])
-    public Image HealthSlider;
-    public Text HealthCount;
+    //public Image HealthSlider;
+    //public Text HealthCount;
     public Transform playerSpawnPoint;
     public Joystick joy;
 
@@ -39,8 +40,8 @@ public class Main : MonoBehaviour
 
     public List<GameObject> dontDestroyOnLoadGameObjects;
 
-    public float storedPlayerHealth;
-    public float playerHealthRecoveryCount; // доля (в %) хп, на которое восстановится здоровь игрока на следующем уровне (но не больше максимального значения)
+    //public float storedPlayerHealth;
+    //public float playerHealthRecoveryCount; // доля (в %) хп, на которое восстановится здоровье игрока на следующем уровне (но не больше максимального значения)
 
 
     void Awake()
@@ -97,19 +98,28 @@ public class Main : MonoBehaviour
         // находим игрока на сцене
         player = Instantiate(Resources.Load<GameObject>("Prefabs/Player")).GetComponent<Player>();
         player.main = this;
+
         // инстанциируем для игрока хэлс бар
         //Transform hPanelp = Instantiate(Resources.Load<GameObject>("Prefabs/healthPanel")).transform;
         //hPanelp.SetParent(healthPanelsPool);
         //hPanelp.localScale = new Vector3(1, 1, 1);
         //player.healthPanel = hPanelp;
         //player.healthPanelScript = hPanelp.GetComponent<HealthPanel>();
+
         // инстанциируем для игрока energy бар
-        Transform ep = Instantiate(Resources.Load<GameObject>("Prefabs/EnergyPanel")).transform;
-        ep.SetParent(energyPanelsPool);
-        ep.localScale = Vector3.one;
-        player.energyPanel = ep;
-        player.energySlider = ep.transform.GetChild(0).GetComponent<Image>();
-        
+        //Transform ep = Instantiate(Resources.Load<GameObject>("Prefabs/EnergyPanel")).transform;
+        //ep.SetParent(energyPanelsPool);
+        //ep.localScale = Vector3.one;
+        //player.energyPanel = ep;
+        //player.energySlider = ep.transform.GetChild(0).GetComponent<Image>();
+
+        //инстанциируем для игрока HP/ EN бар
+        Transform HP_EN = Instantiate(Resources.Load<GameObject>("Prefabs/PlayerBars")).transform;
+        HP_EN.SetParent(PlayerBarsPool);
+        HP_EN.localScale = new Vector3(1, 1, 1);
+        player.playerBarsPanel = HP_EN;
+        player.playerBarsScript = HP_EN.GetComponent<PlayerBars>();
+
         player.StartScene();
 
         curSlowerCoeff = 1; // на старте игры скорость игры нормальная
@@ -128,16 +138,17 @@ public class Main : MonoBehaviour
             e.StartScene();
         }
 
-        int curSceneIndex = SceneManager.GetActiveScene().buildIndex;
-        if (curSceneIndex == 0)
-        {
-            storedPlayerHealth = player.maxHealthPoint;
-        }
+        //// делаем сохранение и загрузку ХП игрока между уровнями
+        //int curSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        //if (curSceneIndex == 0)
+        //{
+        //    storedPlayerHealth = player.maxHealthPoint;
+        //}
 
-        player.curHealthPoint = storedPlayerHealth + playerHealthRecoveryCount * player.maxHealthPoint / 100f;
-        if (player.curHealthPoint > player.maxHealthPoint) player.curHealthPoint = player.maxHealthPoint;
+        //player.curHealthPoint = storedPlayerHealth + playerHealthRecoveryCount * player.maxHealthPoint / 100f;
+        //if (player.curHealthPoint > player.maxHealthPoint) player.curHealthPoint = player.maxHealthPoint;
 
-        player.UIHealthRefresh();
+        //player.playerBarsScript.RefreshHealth(player.curHealthPoint / player.maxHealthPoint, player.curHealthPoint);
     }
 
 
@@ -244,7 +255,8 @@ public class Main : MonoBehaviour
     // убиваем игрока
     IEnumerator PlayerDeath(Player p)
     {
-        p.energyPanel.gameObject.SetActive(false);
+        //p.energyPanel.gameObject.SetActive(false);
+        p.playerBarsPanel.gameObject.SetActive(false);
         p.enabled = false;
         foreach (MeshRenderer mr in p.GetComponentsInChildren<MeshRenderer>()) mr.enabled = false;
         p.GetComponent<Collider>().enabled = false;
@@ -262,7 +274,8 @@ public class Main : MonoBehaviour
 
         deathEffect.SetParent(deathEffectsPool);
         Destroy(p.gameObject);
-        Destroy(p.energyPanel.gameObject);
+        //Destroy(p.energyPanel.gameObject);
+        Destroy(p.playerBarsPanel.gameObject);
 
         StartCoroutine(EndOfBattle());
     }
@@ -286,6 +299,7 @@ public class Main : MonoBehaviour
         if (player != null)
         {
             //Destroy(player.healthPanel.gameObject);
+            Destroy(player.playerBarsPanel.gameObject);
             Destroy(player.gameObject);
 
             yield return null;
@@ -329,7 +343,7 @@ public class Main : MonoBehaviour
 
     IEnumerator loadNextLevel()
     {
-        storedPlayerHealth = player.curHealthPoint;
+        //storedPlayerHealth = player.curHealthPoint;
 
         int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
         if (SceneManager.sceneCountInBuildSettings == nextSceneIndex)
@@ -339,6 +353,7 @@ public class Main : MonoBehaviour
         }
 
         //Destroy(player.healthPanel.gameObject);
+        Destroy(player.playerBarsPanel.gameObject);
         Destroy(player.gameObject);
 
         yield return null;

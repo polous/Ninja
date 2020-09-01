@@ -86,15 +86,18 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
         direction = Vector3.forward * Vertical + Vector3.right * Horizontal;
 
-        if (main.player.curEnergy >= main.player.matrixEnergyDrop)
+        if (main.player != null)
         {
-            if (main.player.inMatrix == false)
+            if (main.player.curEnergy >= main.player.matrixEnergyDrop)
             {
-                main.player.inMatrix = true;
-                main.ToneMap.enabled = true;
-                main.curSlowerCoeff = main.matrixCoeff;
-                if (!background.gameObject.activeSelf) background.gameObject.SetActive(true);
-                if (!main.player.lr.enabled) main.player.lr.enabled = true;
+                if (main.player.inMatrix == false)
+                {
+                    main.player.inMatrix = true;
+                    main.ToneMap.enabled = true;
+                    main.curSlowerCoeff = main.matrixCoeff;
+                    if (!background.gameObject.activeSelf) background.gameObject.SetActive(true);
+                    if (!main.player.lr.enabled) main.player.lr.enabled = true;
+                }
             }
         }
     }

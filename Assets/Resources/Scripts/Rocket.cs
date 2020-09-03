@@ -49,7 +49,6 @@ public class Rocket : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        print(other);
         // если прожектайл столкнулся с препятствием - возвращаем в пул
         if (other.tag == "Wall")
         {

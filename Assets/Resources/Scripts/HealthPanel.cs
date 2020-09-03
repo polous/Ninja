@@ -14,17 +14,17 @@ public class HealthPanel : MonoBehaviour
         if (fillAmount < 0) fillAmount = 0;
         healthSlider.fillAmount = fillAmount;
 
-        foreach (Text t in damageText)
-        {
-            if (!t.gameObject.activeSelf)
-            {
-                t.gameObject.SetActive(true);
-                t.GetComponent<Animator>().SetTrigger("hit");
-                t.text = "-" + damage.ToString();
-                StartCoroutine(Deactivate(t.gameObject));
-                break;
-            }
-        }
+        //foreach (Text t in damageText)
+        //{
+        //    if (!t.gameObject.activeSelf)
+        //    {
+        //        t.gameObject.SetActive(true);
+        //        t.GetComponent<Animator>().SetTrigger("hit");
+        //        t.text = "-" + damage.ToString();
+        //        StartCoroutine(Deactivate(t.gameObject));
+        //        break;
+        //    }
+        //}
     }
 
     public void HealFunction(float fillAmount, float healCount)
@@ -32,17 +32,17 @@ public class HealthPanel : MonoBehaviour
         if (fillAmount > 1) fillAmount = 1;
         healthSlider.fillAmount = fillAmount;
 
-        foreach (Text t in damageText)
-        {
-            if (!t.gameObject.activeSelf)
-            {
-                t.gameObject.SetActive(true);
-                t.GetComponent<Animator>().SetTrigger("hit");
-                t.text = "+" + healCount.ToString();
-                StartCoroutine(Deactivate(t.gameObject));
-                break;
-            }
-        }
+        //foreach (Text t in damageText)
+        //{
+        //    if (!t.gameObject.activeSelf)
+        //    {
+        //        t.gameObject.SetActive(true);
+        //        t.GetComponent<Animator>().SetTrigger("hit");
+        //        t.text = "+" + healCount.ToString();
+        //        StartCoroutine(Deactivate(t.gameObject));
+        //        break;
+        //    }
+        //}
     }
 
     IEnumerator Deactivate(GameObject go)

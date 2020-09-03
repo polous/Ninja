@@ -9,11 +9,13 @@ using UnityEngine.UI;
 
 public class Main : MonoBehaviour
 {
+    public bool JOY_DIR_INVERSE;
+    [Space]
     public Player player; // префаб игрока
     public Transform rocketsPool; // пул прожектайлов
     public Transform voidZonesPool; // пул войд зон
     public Transform voidZoneCastEffectsPool; // пул эффектов кастования войд зоны
-    //public Transform healthPanelsPool; // пул UI панелей здоровья
+    public Transform healthPanelsPool; // пул UI панелей здоровья
     //public Transform energyPanelsPool; // пул UI панелей energy
     public Transform PlayerBarsPool; // пул UI панелей HP/EN
     public Transform deathEffectsPool; // пул эффектов смерти
@@ -37,11 +39,16 @@ public class Main : MonoBehaviour
     public GameObject StartButton;
 
     public Image ToneMap;
+    public Text LevelName;
+    public Image HandImage;
 
     public List<GameObject> dontDestroyOnLoadGameObjects;
 
     //public float storedPlayerHealth;
     //public float playerHealthRecoveryCount; // доля (в %) хп, на которое восстановится здоровье игрока на следующем уровне (но не больше максимального значения)
+
+
+
 
 
     void Awake()
@@ -95,6 +102,8 @@ public class Main : MonoBehaviour
         RepeatButton.SetActive(false);
         NextButton.SetActive(false);
 
+        LevelName.text = "LEVEL 1";
+
         // находим игрока на сцене
         player = Instantiate(Resources.Load<GameObject>("Prefabs/Player")).GetComponent<Player>();
         player.main = this;
@@ -129,12 +138,13 @@ public class Main : MonoBehaviour
         foreach (Enemy e in enemies)
         {
             e.main = this;
-            // инстанциируем для врагов хэлс бары
-            //Transform hPanele = Instantiate(Resources.Load<GameObject>("Prefabs/healthPanel")).transform;
-            //hPanele.SetParent(healthPanelsPool);
-            //hPanele.localScale = new Vector3(1, 1, 1);
-            //e.healthPanel = hPanele;
-            //e.healthPanelScript = hPanele.GetComponent<HealthPanel>();
+            //инстанциируем для врагов хэлс бары
+            Transform hPanele = Instantiate(Resources.Load<GameObject>("Prefabs/healthPanel")).transform;
+            hPanele.SetParent(healthPanelsPool);
+            hPanele.localScale = new Vector3(1, 1, 1);
+            e.healthPanel = hPanele;
+            e.healthPanelScript = hPanele.GetComponent<HealthPanel>();
+            e.healthPanel.gameObject.SetActive(false);
             e.StartScene();
         }
 
@@ -199,7 +209,7 @@ public class Main : MonoBehaviour
     // убиваем врага
     IEnumerator EnemyDeath(Enemy e)
     {
-        //e.healthPanel.GetComponent<Image>().enabled = false;
+        e.healthPanel.gameObject.SetActive(false);
         e.enabled = false;
         foreach (MeshRenderer mr in e.GetComponentsInChildren<MeshRenderer>()) mr.enabled = false;
         e.GetComponent<Collider>().enabled = false;
@@ -213,11 +223,14 @@ public class Main : MonoBehaviour
 
         yield return new WaitForSeconds(1);
 
-        deathEffect.SetParent(deathEffectsPool);
         Destroy(e.gameObject);
-        //Destroy(e.healthPanel.gameObject);
+        Destroy(e.healthPanel.gameObject);
 
         StartCoroutine(EndOfBattle());
+
+        yield return new WaitForSeconds(1);
+
+        deathEffect.SetParent(deathEffectsPool);
     }
 
     IEnumerator WaitLastFlyingRocket()
@@ -231,17 +244,23 @@ public class Main : MonoBehaviour
 
     IEnumerator EndOfBattle()
     {
-        yield return StartCoroutine(WaitLastFlyingRocket());
+        //yield return StartCoroutine(WaitLastFlyingRocket());
         yield return null;
         if (player != null && enemies.Count == 0)
         {
-            MessagePanel.text = "ТЫ ПОБЕДИЛ!\n за " + Timer.text + " сек";
+            foreach (Rocket r in FindObjectsOfType<Rocket>())
+            {
+                r.transform.SetParent(rocketsPool);
+                r.flying = false;
+            }
+
+            MessagePanel.text = "YOU WON!\n" + Timer.text + " seconds";
             RepeatButton.SetActive(true);
             NextButton.SetActive(true);
         }
         else if (player == null)
         {
-            MessagePanel.text = "ТЫ ПРОИГРАЛ!";
+            MessagePanel.text = "YOU LOSE!";
             RepeatButton.SetActive(true);
             NextButton.SetActive(false);
         }
@@ -272,12 +291,15 @@ public class Main : MonoBehaviour
 
         yield return new WaitForSeconds(1);
 
-        deathEffect.SetParent(deathEffectsPool);
         Destroy(p.gameObject);
         //Destroy(p.energyPanel.gameObject);
         Destroy(p.playerBarsPanel.gameObject);
 
         StartCoroutine(EndOfBattle());
+
+        yield return new WaitForSeconds(1);
+
+        deathEffect.SetParent(deathEffectsPool);
     }
 
     void LateUpdate()
@@ -348,7 +370,7 @@ public class Main : MonoBehaviour
         int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
         if (SceneManager.sceneCountInBuildSettings == nextSceneIndex)
         {
-            MessagePanel.text = "Ты прошел все уровни!\nХочешь играть дальше?\nСоздай новые!";
+            MessagePanel.text = "You have completed\nall the levels!";
             yield break;
         }
 
@@ -374,6 +396,8 @@ public class Main : MonoBehaviour
         // прогрузилась сцена
         yield return null;
         StartScene();
+
+        LevelName.text = "LEVEL " + (nextSceneIndex + 1).ToString();
     }
 
     public void StartCurrentLevel()

@@ -54,6 +54,7 @@ public class Player : MonoBehaviour
 
     Vector3 normal = Vector3.zero;
 
+    [HideInInspector] public GameObject swishBlade;
 
 
     public void StartScene()
@@ -69,6 +70,7 @@ public class Player : MonoBehaviour
         mr.GetPropertyBlock(MPB);
         MPB.SetColor("_Color", bodyColor);
         mr.SetPropertyBlock(MPB);
+        swishBlade = transform.GetChild(1).gameObject;
 
         coll = GetComponent<Collider>();
 
@@ -119,7 +121,8 @@ public class Player : MonoBehaviour
 
         if (inMatrix)
         {
-            PathShower(joy.direction.normalized);
+            if (!main.JOY_DIR_INVERSE) PathShower(joy.direction.normalized);
+            else PathShower(-joy.direction.normalized);
         }
 
         // двигаем игрока в заданном направлении        

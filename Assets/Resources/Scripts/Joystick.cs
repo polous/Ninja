@@ -69,6 +69,8 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         //{
         //    main.readyToGo = true;
         //}
+
+        main.HandImage.gameObject.SetActive(false);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -172,13 +174,18 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
                 if (direction.magnitude != 0)
                 {
                     main.player.curEnergy -= main.player.matrixEnergyDrop;
-                    main.player.moveDirection = direction.normalized;
-
-                    main.player.PathShower(direction.normalized);
-
-                    //print("UP: "+direction.normalized.x+"/"+ direction.normalized.y + "/" + direction.normalized.z);
-
-                    main.player.transform.rotation = Quaternion.LookRotation(direction.normalized);
+                    if (!main.JOY_DIR_INVERSE)
+                    {
+                        main.player.moveDirection = direction.normalized;
+                        main.player.PathShower(direction.normalized);
+                        main.player.transform.rotation = Quaternion.LookRotation(direction.normalized);
+                    }
+                    else
+                    {
+                        main.player.moveDirection = -direction.normalized;
+                        main.player.PathShower(-direction.normalized);
+                        main.player.transform.rotation = Quaternion.LookRotation(-direction.normalized);
+                    }
 
                     main.player.timerForRage = main.player.rageTime;
 

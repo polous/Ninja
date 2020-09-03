@@ -45,8 +45,8 @@ public class Enemy : MonoBehaviour
     float curAng, targAng;
     int rotateDir;
 
-    //[HideInInspector] public Transform healthPanel;
-    //[HideInInspector] public HealthPanel healthPanelScript;
+    [HideInInspector] public Transform healthPanel;
+    [HideInInspector] public HealthPanel healthPanelScript;
     //[HideInInspector] public GameObject AimRing;
 
     [HideInInspector] public Main main;
@@ -69,13 +69,14 @@ public class Enemy : MonoBehaviour
     int i;
 
     public Color bodyColor;
+    public Color bodyColorBlind;
     [HideInInspector] public MaterialPropertyBlock MPB;
     [HideInInspector] public MeshRenderer mr;
     [HideInInspector] public Collider coll;
     [HideInInspector] public Animator anim;
     [HideInInspector] public Rigidbody rb;
 
-    public LineRenderer lr;
+    [HideInInspector] public LineRenderer lr;
 
     public Color rocketColor;
     public float rocketSize;
@@ -83,7 +84,7 @@ public class Enemy : MonoBehaviour
     public bool isMother;
     public GameObject ChildPrefab;
     public float bornChildReloadingTime;
-    Transform Throwpoint;
+    [HideInInspector] public Transform Throwpoint;
     bool isBorning;
 
 
@@ -98,6 +99,8 @@ public class Enemy : MonoBehaviour
         coll = GetComponent<Collider>();
         anim = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody>();
+        Throwpoint = transform.Find("Throwpoint");
+        lr = Throwpoint.GetComponent<LineRenderer>();
 
         AnimatorStateInfo state = anim.GetCurrentAnimatorStateInfo(0);
         anim.Play(state.fullPathHash, -1, Random.Range(0f, 1f));
@@ -185,6 +188,8 @@ public class Enemy : MonoBehaviour
 
     public void ShowTrajectory(Vector3 origin, Vector3 speed)
     {
+        lr.enabled = true;
+
         Vector3[] points = new Vector3[100];
         lr.positionCount = points.Length;
 
@@ -194,7 +199,7 @@ public class Enemy : MonoBehaviour
 
             points[i] = origin + speed * time + Physics.gravity * time * time / 2f;
 
-            if (points[i].y < 0)
+            if (points[i].y < 0.1f)
             {
                 lr.positionCount = i + 1;
                 break;
@@ -202,6 +207,25 @@ public class Enemy : MonoBehaviour
         }
 
         lr.SetPositions(points);
+    }
+
+    void ShowVoidZoneTraectory(Vector3 VZPos, float Ang)
+    {
+        float velocity;
+        float ThrowDistX, ThrowDistY;
+
+        Vector3 FromTo = VZPos - Throwpoint.position;
+        Vector3 FromToXZ = new Vector3(FromTo.x, 0f, FromTo.z);
+
+        ThrowDistX = FromToXZ.magnitude;
+        ThrowDistY = FromTo.y;
+
+        Throwpoint.rotation = Quaternion.LookRotation(FromToXZ);
+
+        Throwpoint.localEulerAngles = new Vector3(-Ang, Throwpoint.localEulerAngles.y, Throwpoint.localEulerAngles.z);
+        velocity = ThrowVelocityCalc(Physics.gravity.y, Ang, ThrowDistX, ThrowDistY);
+
+        ShowTrajectory(Throwpoint.position, velocity * Throwpoint.forward);
     }
 
     float t = 0;
@@ -217,7 +241,7 @@ public class Enemy : MonoBehaviour
     {
         if (main == null) return;
 
-        //if (healthPanel != null) healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
+        if (healthPanel != null) healthPanel.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.2f);
 
         if (!main.readyToGo) return;
 
@@ -268,8 +292,7 @@ public class Enemy : MonoBehaviour
                             float velocity;
                             float ThrowDistX, ThrowDistY;
                             float Ang = 70;
-
-                            Throwpoint = transform.Find("Throwpoint");
+                            
                             Child.transform.position = Throwpoint.position;
 
                             Vector3 FromTo = bornPos - Throwpoint.position;
@@ -314,6 +337,19 @@ public class Enemy : MonoBehaviour
 
                             timerForReloading = 0;
                         }
+
+                        mr.GetPropertyBlock(MPB);
+                        MPB.SetColor("_Color", bodyColor);
+                        mr.SetPropertyBlock(MPB);
+                    }
+                }
+                else
+                {
+                    if (shootRange > 0)
+                    {
+                        mr.GetPropertyBlock(MPB);
+                        MPB.SetColor("_Color", bodyColorBlind);
+                        mr.SetPropertyBlock(MPB);
                     }
                 }
             }
@@ -410,7 +446,6 @@ public class Enemy : MonoBehaviour
     {
         for (int i = 0; i < rocketsCountPerShoot; i++)
         {
-            print("");
             Rocket rocket = main.rocketsPool.GetChild(0).GetComponent<Rocket>();
             rocket.transform.parent = null;
             rocket.transform.position = coll.bounds.center;
@@ -458,7 +493,11 @@ public class Enemy : MonoBehaviour
             else
             {
                 GetRandomPoint(transform.position, voidZoneCastRange);
-                if (path.corners.Length > 1) voidZone.transform.position = path.corners.Last();
+                if (path.corners.Length > 1)
+                {
+                    voidZone.transform.position = path.corners.Last();
+                    ShowVoidZoneTraectory(voidZone.transform.position, 50f);
+                }
             }
             voidZone.damage = voidZoneDamage;
             voidZone.radius = voidZoneRadius;
@@ -466,6 +505,7 @@ public class Enemy : MonoBehaviour
             voidZone.duration = voidZoneDuration;
             voidZone.isCasting = true;
             voidZone.Custer = this;
+            voidZone.VZShowRadius();
 
             Transform vzce = main.voidZoneCastEffectsPool.GetChild(0);
             vzce.transform.parent = null;
@@ -531,6 +571,7 @@ public class Enemy : MonoBehaviour
             transform.position = new Vector3(transform.position.x, 0, transform.position.z);
             if (p != null) p.transform.position = new Vector3(p.transform.position.x, 0, p.transform.position.z);
 
+            // враг лечит игрока
             if (collHeal != 0 && p.curHealthPoint < p.maxHealthPoint)
             {
                 p.curHealthPoint += collHeal; if (p.curHealthPoint > p.maxHealthPoint) p.curHealthPoint = p.maxHealthPoint;
@@ -539,17 +580,24 @@ public class Enemy : MonoBehaviour
                 p.playerBarsScript.RefreshHealth(p.curHealthPoint / p.maxHealthPoint, p.curHealthPoint);
             }
 
+            // игрок дамажит врага первым
             main.BodyHitReaction(mr, MPB, bodyColor);
-            if (p.timerForRage > 0) curHealthPoint -= p.rageCollDamage;
-            else curHealthPoint -= p.collDamage;
-            //e.healthPanelScript.HitFunction(e.curHealthPoint / e.maxHealthPoint, damage);
+            float damage;
+            if (p.timerForRage > 0) damage = p.rageCollDamage;
+            else damage = p.collDamage;
+            curHealthPoint -= damage;
+            healthPanelScript.HitFunction(curHealthPoint / maxHealthPoint, damage);
+
+            p.swishBlade.SetActive(true);
 
             if (curHealthPoint <= 0)
             {
                 main.EnemyDie(this);
             }
-            else
+            else // если враг не умер, он в ответ дамажит игрока
             {
+                healthPanel.gameObject.SetActive(true);
+
                 if (collDamage > 0 && p.timerForRage <= 0)
                 {
                     main.BodyHitReaction(p.mr, p.MPB, p.bodyColor);
@@ -587,16 +635,20 @@ public class Enemy : MonoBehaviour
             }
 
             main.BodyHitReaction(mr, MPB, bodyColor);
-            if (p.timerForRage > 0) curHealthPoint -= p.rageCollDamage;
-            else curHealthPoint -= p.collDamage;
-            //e.healthPanelScript.HitFunction(e.curHealthPoint / e.maxHealthPoint, damage);
+            float damage;
+            if (p.timerForRage > 0) damage = p.rageCollDamage;
+            else damage = p.collDamage;
+            curHealthPoint -= damage;
+            healthPanelScript.HitFunction(curHealthPoint / maxHealthPoint, damage);
 
             if (curHealthPoint <= 0)
             {
                 main.EnemyDie(this);
             }
-            else
+            else // если враг не умер, он в ответ дамажит игрока
             {
+                healthPanel.gameObject.SetActive(true);
+
                 p.moveDirection = Vector3.Reflect(p.moveDirection, other.GetContact(0).normal).normalized;
                 p.transform.rotation = Quaternion.LookRotation(p.moveDirection);
 

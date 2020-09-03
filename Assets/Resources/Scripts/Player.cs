@@ -140,7 +140,7 @@ public class Player : MonoBehaviour
                     MPB.SetColor("_Color", bodyColor);
                     mr.SetPropertyBlock(MPB);
 
-                    anim.enabled = true;               
+                    anim.enabled = true;
 
                     tr.enabled = false;
 
@@ -259,6 +259,14 @@ public class Player : MonoBehaviour
         //Vector3[] path = GetPath2(transform.position, dir * rageSpeed);
         lr.positionCount = path.Length;
         lr.SetPositions(path);
+
+        //for (int i = 0; i < path.Length; i++)
+        //{
+        //    if (i != path.Length - 1)
+        //    {
+        //        Debug.DrawLine(path[i], path[i + 1]);
+        //    }
+        //}
     }
 
 

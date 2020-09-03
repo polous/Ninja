@@ -230,7 +230,7 @@ public class Main : MonoBehaviour
 
         yield return new WaitForSeconds(1);
 
-        deathEffect.SetParent(deathEffectsPool);
+        if(deathEffect != null) deathEffect.SetParent(deathEffectsPool);
     }
 
     IEnumerator WaitLastFlyingRocket()
@@ -299,7 +299,7 @@ public class Main : MonoBehaviour
 
         yield return new WaitForSeconds(1);
 
-        deathEffect.SetParent(deathEffectsPool);
+        if (deathEffect != null) deathEffect.SetParent(deathEffectsPool);
     }
 
     void LateUpdate()
@@ -334,10 +334,10 @@ public class Main : MonoBehaviour
         }
         else
         {
-            //foreach (Enemy e in enemies)
-            //{
-            //    Destroy(e.healthPanel.gameObject);
-            //}
+            foreach (Enemy e in enemies)
+            {
+                Destroy(e.healthPanel.gameObject);
+            }
 
             foreach (GameObject go in dontDestroyOnLoadGameObjects)
             {

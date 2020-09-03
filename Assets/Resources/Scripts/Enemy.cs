@@ -287,6 +287,15 @@ public class Enemy : MonoBehaviour
                             Enemy Child = Instantiate(ChildPrefab).GetComponent<Enemy>();
                             main.enemies.Add(Child);
                             Child.main = main;
+
+                            //инстанциируем для врагов хэлс бары
+                            Transform hPanele = Instantiate(Resources.Load<GameObject>("Prefabs/healthPanel")).transform;
+                            hPanele.SetParent(main.healthPanelsPool);
+                            hPanele.localScale = new Vector3(1, 1, 1);
+                            Child.healthPanel = hPanele;
+                            Child.healthPanelScript = hPanele.GetComponent<HealthPanel>();
+                            Child.healthPanel.gameObject.SetActive(false);
+
                             Child.StartScene();
 
                             float velocity;
@@ -588,6 +597,7 @@ public class Enemy : MonoBehaviour
             curHealthPoint -= damage;
             healthPanelScript.HitFunction(curHealthPoint / maxHealthPoint, damage);
 
+            p.swishBlade.SetActive(false);
             p.swishBlade.SetActive(true);
 
             if (curHealthPoint <= 0)
@@ -634,12 +644,16 @@ public class Enemy : MonoBehaviour
                 p.playerBarsScript.RefreshHealth(p.curHealthPoint / p.maxHealthPoint, p.curHealthPoint);
             }
 
+            // игрок дамажит врага первым
             main.BodyHitReaction(mr, MPB, bodyColor);
             float damage;
             if (p.timerForRage > 0) damage = p.rageCollDamage;
             else damage = p.collDamage;
             curHealthPoint -= damage;
             healthPanelScript.HitFunction(curHealthPoint / maxHealthPoint, damage);
+
+            p.swishBlade.SetActive(false);
+            p.swishBlade.SetActive(true);
 
             if (curHealthPoint <= 0)
             {

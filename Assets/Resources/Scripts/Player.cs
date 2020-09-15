@@ -12,7 +12,14 @@ public class Player : MonoBehaviour
     public float rageSpeed; // скорость перемещения игрока во время ярости
     public float rageTime;
     [HideInInspector] public float timerForRage;
-    float s; // текущая скорость игрока
+
+    public float normalMoveTime;
+    [HideInInspector] public float timerForNormalMove;
+
+    public float slowingMoveTime;
+    [HideInInspector] public float timerForSlowMove;
+
+    [HideInInspector] public float s;
 
     public float collDamage;
     public float rageCollDamage;
@@ -87,6 +94,11 @@ public class Player : MonoBehaviour
         playerBarsScript.RefreshEnergy(curEnergy / maxEnergy);
 
         joy = main.joy;
+
+        timerForNormalMove = normalMoveTime;
+        timerForSlowMove = slowingMoveTime;
+
+        s = moveSpeed;
     }
 
     //// обновление UI Energy
@@ -111,12 +123,12 @@ public class Player : MonoBehaviour
 
         if (!main.readyToGo) return;
 
-        sPrev = s;
+        //sPrev = s;
         // определяем и задаем направление движения
-        Vector3 direction = Vector3.forward * joy.Vertical + Vector3.right * joy.Horizontal;
-        if (direction.magnitude == 0) s = 0;
-        else s = moveSpeed;
-        sCur = s;
+        //Vector3 direction = Vector3.forward * joy.Vertical + Vector3.right * joy.Horizontal;
+        //if (direction.magnitude == 0) s = 0;
+        //else s = moveSpeed;
+        //sCur = s;
 
 
         if (inMatrix)
@@ -145,11 +157,34 @@ public class Player : MonoBehaviour
                     tr.enabled = false;
 
                     timerForRage = -1;
+
+                    timerForNormalMove = normalMoveTime;
                 }
             }
-            if (timerForRage < 0)
+
+            if (timerForRage < 0 && timerForNormalMove > 0)
             {
                 transform.position += moveDirection * moveSpeed * Time.deltaTime * main.curSlowerCoeff;
+
+                timerForNormalMove -= Time.deltaTime * main.curSlowerCoeff;
+
+                if (timerForNormalMove <= 0)
+                {
+                    timerForSlowMove = slowingMoveTime;
+                    s = moveSpeed;
+                }
+            }
+
+            if (timerForNormalMove < 0 && timerForSlowMove > 0)
+            {
+                if (s > 0)
+                {
+                    transform.position += moveDirection * s * Time.deltaTime * main.curSlowerCoeff;
+
+                    s -= Time.deltaTime * main.curSlowerCoeff * moveSpeed / slowingMoveTime;
+
+                    timerForSlowMove -= Time.deltaTime * main.curSlowerCoeff;
+                }
             }
         }
 

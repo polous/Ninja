@@ -19670,10 +19670,11 @@ MonoBehaviour:
   rageSpeed: 14
   rageTime: 1.2
   timerForRage: 0
-  normalMoveTime: 2
+  normalMoveTime: 1.2
   timerForNormalMove: 0
-  slowingMoveTime: 2
+  slowingMoveTime: 2.4
   timerForSlowMove: 0
+  s: 0
   collDamage: 10
   rageCollDamage: 20
   maxEnergy: 100

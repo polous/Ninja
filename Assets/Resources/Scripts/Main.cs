@@ -44,11 +44,8 @@ public class Main : MonoBehaviour
 
     public List<GameObject> dontDestroyOnLoadGameObjects;
 
-    //public float storedPlayerHealth;
-    //public float playerHealthRecoveryCount; // доля (в %) хп, на которое восстановится здоровье игрока на следующем уровне (но не больше максимального значения)
-
-
-
+    public float storedPlayerHealth;
+    public float playerHealthRecoveryCount; // доля (в % от maxHealthPoint) хп, на которое восстановится здоровье игрока на следующем уровне (но не больше максимального значения)
 
 
     void Awake()
@@ -148,17 +145,17 @@ public class Main : MonoBehaviour
             e.StartScene();
         }
 
-        //// делаем сохранение и загрузку ХП игрока между уровнями
-        //int curSceneIndex = SceneManager.GetActiveScene().buildIndex;
-        //if (curSceneIndex == 0)
-        //{
-        //    storedPlayerHealth = player.maxHealthPoint;
-        //}
+        // делаем сохранение и загрузку ХП игрока между уровнями
+        int curSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        if (curSceneIndex == 0)
+        {
+            storedPlayerHealth = player.maxHealthPoint;
+        }
 
-        //player.curHealthPoint = storedPlayerHealth + playerHealthRecoveryCount * player.maxHealthPoint / 100f;
-        //if (player.curHealthPoint > player.maxHealthPoint) player.curHealthPoint = player.maxHealthPoint;
+        player.curHealthPoint = storedPlayerHealth + playerHealthRecoveryCount * player.maxHealthPoint / 100f;
+        if (player.curHealthPoint > player.maxHealthPoint) player.curHealthPoint = player.maxHealthPoint;
 
-        //player.playerBarsScript.RefreshHealth(player.curHealthPoint / player.maxHealthPoint, player.curHealthPoint);
+        player.playerBarsScript.RefreshHealth(player.curHealthPoint / player.maxHealthPoint, player.curHealthPoint);
     }
 
 
@@ -365,7 +362,7 @@ public class Main : MonoBehaviour
 
     IEnumerator loadNextLevel()
     {
-        //storedPlayerHealth = player.curHealthPoint;
+        storedPlayerHealth = player.curHealthPoint;
 
         int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
         if (SceneManager.sceneCountInBuildSettings == nextSceneIndex)

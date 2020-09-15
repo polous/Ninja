@@ -251,9 +251,12 @@ MonoBehaviour:
   twisterAngle: 0
   twistSpeed: 0
   isArmored: 1
+  healthPanel: {fileID: 0}
+  healthPanelScript: {fileID: 0}
   main: {fileID: 0}
   MT: 0
   bodyColor: {r: 0.3207547, g: 0.3159131, b: 0.24086863, a: 1}
+  bodyColorBlind: {r: 0, g: 0, b: 0, a: 0}
   mr: {fileID: 0}
   coll: {fileID: 0}
   anim: {fileID: 0}
@@ -264,6 +267,7 @@ MonoBehaviour:
   isMother: 0
   ChildPrefab: {fileID: 0}
   bornChildReloadingTime: 0
+  Throwpoint: {fileID: 0}
   velocity: {x: 0, y: 0, z: 0}
   origin: {x: 0, y: 0, z: 0}
 --- !u!65 &7947253113464909154

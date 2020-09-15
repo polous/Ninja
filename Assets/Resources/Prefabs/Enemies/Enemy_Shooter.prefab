@@ -233,9 +233,9 @@ MonoBehaviour:
   moveSpeed: 1
   shootRange: 15
   movingTime: 3
-  rocketsCountPerShoot: 1
-  rocketSpreadCoeff: 0
-  rocketDamage: 12.5
+  rocketsCountPerShoot: 3
+  rocketSpreadCoeff: 8
+  rocketDamage: 5
   rocketSpeed: 3
   reloadingTime: 3.5
   collDamage: 0

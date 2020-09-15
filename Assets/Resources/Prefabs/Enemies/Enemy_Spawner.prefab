@@ -462,9 +462,12 @@ MonoBehaviour:
   twisterAngle: 0
   twistSpeed: 0
   isArmored: 0
+  healthPanel: {fileID: 0}
+  healthPanelScript: {fileID: 0}
   main: {fileID: 0}
   MT: 0
   bodyColor: {r: 0.5870674, g: 0, b: 0.9716981, a: 1}
+  bodyColorBlind: {r: 0, g: 0, b: 0, a: 0}
   mr: {fileID: 0}
   coll: {fileID: 0}
   anim: {fileID: 0}
@@ -473,9 +476,10 @@ MonoBehaviour:
   rocketColor: {r: 0.39607844, g: 0, b: 0.20453769, a: 1}
   rocketSize: 0.5
   isMother: 1
-  ChildPrefab: {fileID: 8073356480628010920, guid: 60e0e69992075c544b90ed747588a976,
+  ChildPrefab: {fileID: 8073356480628010920, guid: 8276f6098b35303459eed445456efd62,
     type: 3}
   bornChildReloadingTime: 4
+  Throwpoint: {fileID: 0}
   velocity: {x: 0, y: 0, z: 0}
   origin: {x: 0, y: 0, z: 0}
 --- !u!135 &8073356480628010921
